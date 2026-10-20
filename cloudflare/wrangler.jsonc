@@ -7,7 +7,7 @@
     {
       "binding": "DB",
       "database_name": "alexandria-ratings",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "24448180-cb5b-4b97-b008-d82d9fe109dd",
       "migrations_dir": "migrations"
     }
   ],

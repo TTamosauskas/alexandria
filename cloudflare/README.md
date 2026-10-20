@@ -2,7 +2,7 @@
 
 O Alexandria permanece no GitHub Pages. O Worker abaixo é uma API separada, responsável exclusivamente por votos e médias.
 
-**Esta funcionalidade fica desativada até configurar os dois campos em `assets/js/ratings-config.js`.**
+**O D1 e a Site Key pública já estão configurados nesta branch. O site continua sem avaliações enquanto `apiBaseUrl` estiver vazio.**
 Nenhuma credencial secreta deve ser adicionada ao GitHub.
 
 ## O que é necessário na sua conta Cloudflare
@@ -11,14 +11,13 @@ Nenhuma credencial secreta deve ser adicionada ao GitHub.
 2. Em **Turnstile**, crie um widget para o hostname `ttamosauskas.github.io`. Guarde:
    - **Site key**, que é pública e vai para o frontend.
    - **Secret key**, que é privada e será armazenada como segredo do Worker.
-3. No terminal (Node.js instalado), a partir da pasta `cloudflare/` deste repositório:
+3. **O banco D1 já foi criado. Não execute `d1 create` novamente.** A configuração em `wrangler.jsonc` já contém o identificador fornecido. A partir da pasta `cloudflare/` do repositório, autentique o Wrangler:
 
    ```bash
    npx wrangler login
-   npx wrangler d1 create alexandria-ratings
    ```
 
-   O comando de criação informa um identificador UUID. Copie-o para o campo `database_id` do arquivo `wrangler.jsonc`, substituindo `REPLACE_WITH_D1_DATABASE_ID`.
+   Certifique-se de estar na conta Cloudflare em que o banco `alexandria-ratings` foi criado.
 
 4. Crie o esquema do banco remoto:
 
@@ -45,18 +44,18 @@ Nenhuma credencial secreta deve ser adicionada ao GitHub.
 
    Ao final você verá um endereço como `https://alexandria-ratings.<subdominio>.workers.dev`. Esse é **apenas um exemplo**, não um endereço real.
 
-7. Confira em seu navegador se `<ENDERECO_DO_WORKER>/api/health` retorna `{"ok":true}` e `/api/ratings` retorna `{"ratings":[]}` antes de registrar votos.
+7. Anote a URL **real** impressa por `npx wrangler deploy` (normalmente `https://alexandria-ratings.<subdominio>.workers.dev`). Confira no navegador se `<ENDERECO_DO_WORKER>/api/health` retorna `{"ok":true}` e `/api/ratings` retorna `{"ratings":[]}` antes de registrar votos. Se os resultados forem diferentes, pare e verifique o banco e os segredos.
 
-8. Preencha os **valores públicos** em `assets/js/ratings-config.js`:
+8. **A Site Key pública já foi preenchida.** Depois de validar os endpoints do Worker, substitua somente `apiBaseUrl` em `assets/js/ratings-config.js`:
 
    ```js
    export const RATINGS_CONFIG = Object.freeze({
      apiBaseUrl: "https://SEU-WORKER.workers.dev",
-     turnstileSiteKey: "SUA_SITE_KEY_PUBLICA",
+     turnstileSiteKey: "0x4AAAAAAFeAofBJb0OQ9pGs",
    });
    ```
 
-   Ao publicar essa configuração no GitHub Pages, as estrelas e a ordenação serão ativadas. **Nunca copie** `TURNSTILE_SECRET` nem `VOTER_HASH_SECRET` para o frontend.
+   Envie o endereço do Worker para configurarmos e verificarmos esta branch antes de publicar a alteração na `main`. **Não faça merge enquanto os testes da API não passarem.** Depois da validação e do merge, as estrelas e a ordenação serão ativadas no GitHub Pages. **Nunca copie** `TURNSTILE_SECRET` nem `VOTER_HASH_SECRET` para o frontend.
 
 ## Endpoints
 
