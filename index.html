@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Biblioteca Oculta" />
+    <title>Biblioteca Oculta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <script defer src="https://cdn.jsdelivr.net/gh/scandel/pdfThumbnails@master/pdfThumbnails.js" data-pdfjs-src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+  </head>
+  <body>
+    <main class="library" id="library">
+      <h1>Biblioteca Oculta</h1>
+      <form class="search" id="search-form" role="search">
+        <label class="sr-only" for="search-input">Pesquisar documentos</label>
+        <input id="search-input" name="q" type="search" autocomplete="off" placeholder="Pesquise em até 23.000 documentos" />
+        <button type="submit">Pesquisar</button>
+      </form>
+      <p class="status" id="status" aria-live="polite"></p>
+      <section class="results" id="results" aria-live="polite"></section>
+      <button class="more" id="more" type="button" hidden>Mais resultados</button>
+    </main>
+  </body>
+</html>
