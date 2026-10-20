@@ -41,7 +41,20 @@ function render() {
   more.textContent = `Mais resultados (${Math.max(matches.length - visible, 0)})`;
   if (matches.length) status.textContent = `${matches.length.toLocaleString("pt-BR")} documentos`;
   else status.textContent = field.value || queryState().category ? "Nenhum documento encontrado" : "";
-  requestThumbnails();
+}
+
+function coverSources(identifier) {
+  const item = encodeURIComponent(identifier);
+  return [
+    `https://archive.org/download/${item}/page/n0.jpg`,
+    `https://archive.org/services/img/${item}`,
+    placeholderCover,
+  ];
+}
+
+function setCoverSource(image, sources, index = 0) {
+  image.dataset.coverSource = String(index);
+  image.src = sources[index];
 }
 
 function renderEntry(item) {
@@ -50,14 +63,16 @@ function renderEntry(item) {
 
   const cover = document.createElement("img");
   cover.className = "cover";
-  cover.src = `https://archive.org/services/img/${encodeURIComponent(item.identifier)}`;
   cover.alt = "Capa do documento";
   cover.width = 104;
   cover.height = 146;
   cover.loading = "lazy";
-  cover.dataset.pdfThumbnailFile = item.pdf_url;
-  cover.dataset.pdfThumbnailHeight = "146";
-  cover.addEventListener("error", () => { cover.src = placeholderCover; }, { once: true });
+  const sources = coverSources(item.identifier);
+  cover.addEventListener("error", () => {
+    const next = Number(cover.dataset.coverSource || 0) + 1;
+    if (next < sources.length) setCoverSource(cover, sources, next);
+  });
+  setCoverSource(cover, sources);
 
   const entry = document.createElement("div");
   entry.className = "entry";
@@ -86,12 +101,6 @@ function renderEntry(item) {
 
   article.append(cover, entry);
   return article;
-}
-
-function requestThumbnails() {
-  window.setTimeout(() => {
-    if (typeof window.createPDFThumbnails === "function") window.createPDFThumbnails();
-  }, 0);
 }
 
 function search(query = field.value, category = "") {
