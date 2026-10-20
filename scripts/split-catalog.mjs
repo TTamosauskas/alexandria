@@ -5,10 +5,19 @@ const [source, destination = "data/catalog"] = process.argv.slice(2);
 if (!source) throw new Error("Uso: node scripts/split-catalog.mjs <catalog.json> [destino]");
 
 const input = JSON.parse(await readFile(resolve(source), "utf8"));
+function cleanTitle(value) {
+  let title = String(value || "Documento").trim().replace(/\.pdf$/i, "");
+  const joinedTerms = title.match(/(?<!\s)[_-](?!\s)/g)?.length || 0;
+  const filenameLike = /^\d{4,}(?:[._-]+|\s+)/.test(title) || joinedTerms >= 2;
+  if (filenameLike) {
+    title = title.replace(/^\d{4,}(?:[._-]+|\s+)/, "").replace(/[_-]+/g, " ");
+  }
+  return title.replace(/\s+/g, " ").trim() || "Documento";
+}
 const records = input
   .map(({ identifier, title, creator, categories, pdf_url }) => ({
     identifier,
-    title: String(title || "Documento").trim(),
+    title: cleanTitle(title),
     creator: String(creator || "").trim(),
     categories: Array.isArray(categories) ? categories : [],
     pdf_url,
@@ -25,4 +34,4 @@ for (let start = 0; start < records.length; start += chunkSize) {
   await writeFile(resolve(output, name), JSON.stringify(records.slice(start, start + chunkSize)), "utf8");
   parts.push(name);
 }
-await writeFile(resolve(output, "manifest.json"), JSON.stringify({ version: 1, records: records.length, parts }, null, 2), "utf8");
+await writeFile(resolve(output, "manifest.json"), JSON.stringify({ version: 2, records: records.length, parts }, null, 2), "utf8");

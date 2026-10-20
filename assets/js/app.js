@@ -5,12 +5,12 @@ const form = document.querySelector("#search-form");
 const field = document.querySelector("#search-input");
 const status = document.querySelector("#status");
 const results = document.querySelector("#results");
-const more = document.querySelector("#more");
-const placeholderCover = "assets/cover-placeholder.svg";
+const sentinel = document.querySelector("#results-sentinel");
 
 let catalog = [];
 let matches = [];
 let visible = 0;
+let catalogPromise;
 
 function queryState() {
   const params = new URLSearchParams(location.search);
@@ -34,45 +34,26 @@ function find(query, category) {
   });
 }
 
+function cleanTitle(value) {
+  let title = String(value || "Documento").trim().replace(/\.pdf$/i, "");
+  const joinedTerms = title.match(/(?<!\s)[_-](?!\s)/g)?.length || 0;
+  const filenameLike = /^\d{4,}(?:[._-]+|\s+)/.test(title) || joinedTerms >= 2;
+  if (filenameLike) {
+    title = title.replace(/^\d{4,}(?:[._-]+|\s+)/, "").replace(/[_-]+/g, " ");
+  }
+  return title.replace(/\s+/g, " ").trim() || "Documento";
+}
+
 function render() {
   const entries = matches.slice(0, visible);
   results.replaceChildren(...entries.map(renderEntry));
-  more.hidden = visible >= matches.length;
-  more.textContent = `Mais resultados (${Math.max(matches.length - visible, 0)})`;
   if (matches.length) status.textContent = `${matches.length.toLocaleString("pt-BR")} documentos`;
   else status.textContent = field.value || queryState().category ? "Nenhum documento encontrado" : "";
-}
-
-function coverSources(identifier) {
-  const item = encodeURIComponent(identifier);
-  return [
-    `https://archive.org/services/img/${item}`,
-    `https://archive.org/download/${item}/page/n0.jpg`,
-    placeholderCover,
-  ];
-}
-
-function setCoverSource(image, sources, index = 0) {
-  image.dataset.coverSource = String(index);
-  image.src = sources[index];
 }
 
 function renderEntry(item) {
   const article = document.createElement("article");
   article.className = "result";
-
-  const cover = document.createElement("img");
-  cover.className = "cover";
-  cover.alt = "Capa do documento";
-  cover.width = 104;
-  cover.height = 146;
-  cover.loading = "lazy";
-  const sources = coverSources(item.identifier);
-  cover.addEventListener("error", () => {
-    const next = Number(cover.dataset.coverSource || 0) + 1;
-    if (next < sources.length) setCoverSource(cover, sources, next);
-  });
-  setCoverSource(cover, sources);
 
   const entry = document.createElement("div");
   entry.className = "entry";
@@ -99,12 +80,34 @@ function renderEntry(item) {
     entry.append(tags);
   }
 
-  article.append(cover, entry);
+  article.append(entry);
   return article;
 }
 
-function search(query = field.value, category = "") {
+async function ensureCatalog() {
+  if (catalog.length) return catalog;
+  if (!catalogPromise) {
+    catalogPromise = loadCatalog().then((items) => items.map((item) => ({
+      ...item,
+      title: cleanTitle(item.title),
+      search: normalize(`${cleanTitle(item.title)} ${item.creator || ""}`),
+      categorySearch: normalize((item.categories || []).join(" ")),
+    })));
+  }
+  catalog = await catalogPromise;
+  return catalog;
+}
+
+async function search(query = field.value, category = "") {
   field.value = query;
+  if (!query.trim() && !category) {
+    matches = [];
+    visible = 0;
+    render();
+    return;
+  }
+  status.textContent = "Carregando catálogo…";
+  await ensureCatalog();
   matches = find(query, category);
   visible = pageSize;
   render();
@@ -126,10 +129,12 @@ results.addEventListener("click", (event) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-more.addEventListener("click", () => {
+const observer = new IntersectionObserver((entries) => {
+  if (!entries.some((entry) => entry.isIntersecting) || visible >= matches.length) return;
   visible += pageSize;
   render();
-});
+}, { rootMargin: "480px 0px" });
+observer.observe(sentinel);
 
 window.addEventListener("popstate", () => {
   const { query, category } = queryState();
@@ -137,13 +142,4 @@ window.addEventListener("popstate", () => {
 });
 
 const initial = queryState();
-status.textContent = "Carregando catálogo…";
-catalog = await loadCatalog((loaded, total) => {
-  status.textContent = `Carregando catálogo… ${loaded.toLocaleString("pt-BR")}/${total.toLocaleString("pt-BR")}`;
-});
-catalog = catalog.map((item) => ({
-  ...item,
-  search: normalize(`${item.title} ${item.creator || ""}`),
-  categorySearch: normalize((item.categories || []).join(" ")),
-}));
-search(initial.query, initial.category);
+if (initial.query || initial.category) search(initial.query, initial.category);
