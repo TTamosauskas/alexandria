@@ -92,3 +92,42 @@ Referências oficiais:
 - https://developers.cloudflare.com/d1/get-started/
 - https://developers.cloudflare.com/d1/reference/migrations/
 - https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
+
+## Publicação sem terminal (GitHub Actions)
+
+**É possível publicar usando apenas o navegador.** O workflow
+[Publicar API de avaliações na Cloudflare](../.github/workflows/deploy-cloudflare-ratings.yml)
+executa a migração D1, o deploy do Worker, registra o segredo do Turnstile
+e cria automaticamente uma chave aleatória de 32 bytes para
+`VOTER_HASH_SECRET`, apenas quando ela ainda não existir. Não altera a
+`main` nem publica o frontend.
+
+1. Entre na [Cloudflare](https://dash.cloudflare.com/) e obtenha o
+   **Account ID** na visão geral da conta.
+2. Crie um [API Token](https://dash.cloudflare.com/profile/api-tokens)
+   limitado a essa conta com permissão para editar scripts Workers
+   (incluindo a criação do Worker) e **D1 Edit** para aplicar a migração.
+   Não compartilhe o token na conversa.
+3. No repositório Alexandria, abra
+   [Settings → Secrets and variables → Actions](https://github.com/TTamosauskas/alexandria/settings/secrets/actions).
+   Adicione **três segredos de repositório**:
+   - `CLOUDFLARE_ACCOUNT_ID` — identificador da conta Cloudflare.
+   - `CLOUDFLARE_API_TOKEN` — token criado acima.
+   - `TURNSTILE_SECRET` — **Secret Key** do widget Turnstile, não a Site Key pública.
+4. Na aba [Actions](https://github.com/TTamosauskas/alexandria/actions),
+   localize **Publicar API de avaliações na Cloudflare**, abra a execução
+   da branch `feature/cloudflare-ratings` e use **Re-run jobs** depois
+   de adicionar os segredos. Alternativamente, solicite que seja acionado
+   novamente por uma atualização nesta branch.
+5. Confira se o job terminou com sucesso. Nos detalhes do passo
+   **Publicar Worker**, haverá um endereço público `https://...workers.dev`.
+   O endereço é criado pela sua Cloudflare, e não é possível deduzi-lo
+   a partir do nome do projeto ou do banco.
+6. Verifique os endpoints `/api/health` e `/api/ratings`.
+   Envie **somente o endereço público do Worker** para conectarmos o
+   frontend na branch e testar um voto real.
+
+**Atenção:** não execute o fluxo numa branch não confiável e não coloque
+as chaves no código-fonte. O token de API pode ser revogado depois do
+deploy se não desejar novas publicações. O fluxo está restrito à branch
+de testes e não se executa no GitHub Pages.
