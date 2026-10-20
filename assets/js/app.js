@@ -34,7 +34,7 @@ function queryState() {
     query: params.get("q") || "",
     category: params.get("categoria") || "",
     language: languageFrom(params.get("idioma")),
-    browse: params.has("q") || params.has("categoria") || params.has("idioma"),
+    browse: params.has("q") || params.has("categoria"),
   };
 }
 
@@ -212,9 +212,13 @@ form.addEventListener("submit", (event) => {
 radios.forEach((radio) => {
   radio.addEventListener("change", () => {
     if (!radio.checked) return;
-    const category = queryState().category;
-    setUrl(field.value, category, radio.value);
-    search(field.value, category, radio.value);
+    // A seleção do idioma prepara a próxima busca, sem carregar ou exibir resultados.
+    ++requestId; // Ignora qualquer busca anterior que ainda esteja em andamento.
+    matches = [];
+    visible = 0;
+    results.replaceChildren();
+    status.textContent = "";
+    setUrl("", "", radio.value);
   });
 });
 
