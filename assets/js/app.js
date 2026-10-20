@@ -46,8 +46,8 @@ function render() {
 function coverSources(identifier) {
   const item = encodeURIComponent(identifier);
   return [
-    `https://archive.org/download/${item}/page/n0.jpg`,
     `https://archive.org/services/img/${item}`,
+    `https://archive.org/download/${item}/page/n0.jpg`,
     placeholderCover,
   ];
 }
