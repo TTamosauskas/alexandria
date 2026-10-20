@@ -15,8 +15,7 @@ body { margin: 0; min-width: 320px; background: #fff; }
 
 h1 { margin: 0 0 10px; text-align: center; font-size: clamp(2.8rem, 8vw, 5.5rem); font-weight: 400; line-height: .95; }
 .subtitle { margin: 0 auto 28px; text-align: center; font-size: clamp(1.12rem, 2.3vw, 1.45rem); font-style: italic; }
-.language-filter { width: fit-content; max-width: 100%; margin: 0 auto 28px; padding: 0; border: 0; text-align: center; }
-.language-filter legend { margin: 0 auto 10px; padding: 0; font-size: 1.02rem; }
+.language-filter { width: fit-content; max-width: 100%; margin: 14px auto 0; padding: 0; border: 0; text-align: center; }
 .language-options { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 22px; }
 .language-options label { display: inline-flex; align-items: center; gap: 6px; font-size: 1.06rem; cursor: pointer; white-space: nowrap; }
 .language-options input { accent-color: var(--red); cursor: pointer; width: 16px; height: 16px; margin: 0; }
@@ -48,7 +47,7 @@ button:hover, button:focus-visible { background: #87040d; }
 @media (max-width: 620px) {
   .library { width: min(100% - 24px, 1040px); padding-top: 54px; }
   .subtitle { margin-bottom: 22px; }
-  .language-filter { margin-bottom: 24px; }
+  .language-filter { margin-top: 16px; }
   .language-options { gap: 12px 16px; }
   .search { grid-template-columns: 1fr; }
   .search button { min-height: 48px; }
