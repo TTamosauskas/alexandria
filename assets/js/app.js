@@ -7,7 +7,6 @@ const status = document.querySelector("#status");
 const results = document.querySelector("#results");
 const sentinel = document.querySelector("#results-sentinel");
 const radios = Array.from(document.querySelectorAll('input[name="idioma"]'));
-const placeholderCover = "assets/cover-placeholder.svg";
 const validLanguages = new Set(["pt", "en", "es", "all"]);
 
 let matches = [];
@@ -85,18 +84,8 @@ function find(items, query, category) {
   });
 }
 
-function coverSources(identifier) {
-  const item = encodeURIComponent(identifier);
-  return [
-    "https://archive.org/services/img/" + item,
-    "https://archive.org/download/" + item + "/page/n0.jpg",
-    placeholderCover,
-  ];
-}
-
-function setCoverSource(image, sources, index = 0) {
-  image.dataset.coverSource = String(index);
-  image.src = sources[index];
+function archiveCover(identifier) {
+  return "https://archive.org/services/img/" + encodeURIComponent(identifier);
 }
 
 function renderEntry(item) {
@@ -109,12 +98,12 @@ function renderEntry(item) {
   cover.width = 104;
   cover.height = 146;
   cover.loading = "lazy";
-  const sources = coverSources(item.identifier);
+  cover.src = archiveCover(item.identifier);
   cover.addEventListener("error", () => {
-    const next = Number(cover.dataset.coverSource || 0) + 1;
-    if (next < sources.length) setCoverSource(cover, sources, next);
+    // Sem capa no Archive.org: não usamos miniaturas extraídas de PDFs.
+    article.classList.add("result--no-cover");
+    cover.remove();
   });
-  setCoverSource(cover, sources);
 
   const entry = document.createElement("div");
   entry.className = "entry";
