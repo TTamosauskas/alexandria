@@ -1,4 +1,4 @@
-const manifestUrl = new URL("../../data/catalog/manifest.json", import.meta.url);
+const manifestUrl = new URL("../../data/catalog/manifest.json?v=3", import.meta.url);
 
 async function fetchJson(url) {
   const response = await fetch(url);
@@ -11,7 +11,7 @@ export async function loadCatalog(onProgress = () => {}) {
   const parts = [];
   for (let index = 0; index < manifest.parts.length; index += 4) {
     const group = manifest.parts.slice(index, index + 4);
-    const records = await Promise.all(group.map((part) => fetchJson(new URL(part, manifestUrl))));
+    const records = await Promise.all(group.map((part) => fetchJson(new URL(`${part}?v=${manifest.version}`, manifestUrl))));
     parts.push(...records.flat());
     onProgress(parts.length, manifest.records);
   }

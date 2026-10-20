@@ -34,4 +34,4 @@ for (let start = 0; start < records.length; start += chunkSize) {
   await writeFile(resolve(output, name), JSON.stringify(records.slice(start, start + chunkSize)), "utf8");
   parts.push(name);
 }
-await writeFile(resolve(output, "manifest.json"), JSON.stringify({ version: 2, records: records.length, parts }, null, 2), "utf8");
+await writeFile(resolve(output, "manifest.json"), JSON.stringify({ version: 3, records: records.length, parts }, null, 2), "utf8");
