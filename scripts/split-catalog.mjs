@@ -6,7 +6,8 @@ if (!source) throw new Error("Uso: node scripts/split-catalog.mjs <catalog.json>
 
 const input = JSON.parse(await readFile(resolve(source), "utf8"));
 const records = input
-  .map(({ title, creator, categories, pdf_url }) => ({
+  .map(({ identifier, title, creator, categories, pdf_url }) => ({
+    identifier,
     title: String(title || "Documento").trim(),
     creator: String(creator || "").trim(),
     categories: Array.isArray(categories) ? categories : [],

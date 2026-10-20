@@ -50,13 +50,14 @@ function renderEntry(item) {
 
   const cover = document.createElement("img");
   cover.className = "cover";
-  cover.src = placeholderCover;
+  cover.src = `https://archive.org/services/img/${encodeURIComponent(item.identifier)}`;
   cover.alt = "Capa do documento";
   cover.width = 104;
   cover.height = 146;
   cover.loading = "lazy";
   cover.dataset.pdfThumbnailFile = item.pdf_url;
   cover.dataset.pdfThumbnailHeight = "146";
+  cover.addEventListener("error", () => { cover.src = placeholderCover; }, { once: true });
 
   const entry = document.createElement("div");
   entry.className = "entry";
