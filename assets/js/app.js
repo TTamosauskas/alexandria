@@ -1,4 +1,5 @@
 import { loadCatalog, normalize } from "./catalog.js";
+import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js";
 
 const pageSize = 24;
 const form = document.querySelector("#search-form");
@@ -130,6 +131,9 @@ function renderEntry(item) {
     entry.append(tags);
   }
 
+  const rating = ratingElement(item);
+  if (rating) entry.append(rating);
+
   article.append(cover, entry);
   return article;
 }
@@ -176,10 +180,17 @@ async function search(query = field.value, category = "", language = selectedLan
   try {
     const items = await indexedCatalog(activeLanguage);
     if (currentRequest !== requestId) return;
-    matches = find(items, query, category);
-    if (activeLanguage === "all") {
-      matches.sort((left, right) => left.title.localeCompare(right.title, "pt-BR"));
+    if (ratingsEnabled) {
+      await assignRatingIds(items);
+      try {
+        await loadRatings();
+      } catch (error) {
+        console.warn("Avaliações temporariamente indisponíveis", error);
+      }
     }
+    if (currentRequest !== requestId) return;
+    matches = find(items, query, category);
+    matches.sort(compareByRating);
     showMatches(activeLanguage);
   } catch (error) {
     if (currentRequest !== requestId) return;
@@ -231,6 +242,13 @@ observer.observe(sentinel);
 window.addEventListener("popstate", () => {
   const state = queryState();
   search(state.query, state.category, state.language, state.browse);
+});
+
+initializeRatings(results, () => {
+  matches.sort(compareByRating);
+  results.replaceChildren();
+  visible = 0;
+  appendNextPage();
 });
 
 const initial = queryState();

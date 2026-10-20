@@ -33,3 +33,8 @@ Durante o desenvolvimento, sirva o site por HTTP, por exemplo:
     python3 -m http.server
 
 Abra `http://localhost:8000` em um navegador.
+
+## Avaliações por estrelas
+
+A implementação Cloudflare está na pasta `cloudflare/`. Consulte [o guia de configuração](cloudflare/README.md).
+O site continua sem sistema de notas até configurar a URL pública do Worker e a site key do Turnstile.
