@@ -6,6 +6,7 @@ const field = document.querySelector("#search-input");
 const status = document.querySelector("#status");
 const results = document.querySelector("#results");
 const sentinel = document.querySelector("#results-sentinel");
+const placeholderCover = "assets/cover-placeholder.svg";
 
 let catalog = [];
 let matches = [];
@@ -44,6 +45,20 @@ function cleanTitle(value) {
   return title.replace(/\s+/g, " ").trim() || "Documento";
 }
 
+function coverSources(identifier) {
+  const item = encodeURIComponent(identifier);
+  return [
+    `https://archive.org/services/img/${item}`,
+    `https://archive.org/download/${item}/page/n0.jpg`,
+    placeholderCover,
+  ];
+}
+
+function setCoverSource(image, sources, index = 0) {
+  image.dataset.coverSource = String(index);
+  image.src = sources[index];
+}
+
 function render() {
   const entries = matches.slice(0, visible);
   results.replaceChildren(...entries.map(renderEntry));
@@ -54,6 +69,19 @@ function render() {
 function renderEntry(item) {
   const article = document.createElement("article");
   article.className = "result";
+
+  const cover = document.createElement("img");
+  cover.className = "cover";
+  cover.alt = "Capa do documento";
+  cover.width = 104;
+  cover.height = 146;
+  cover.loading = "lazy";
+  const sources = coverSources(item.identifier);
+  cover.addEventListener("error", () => {
+    const next = Number(cover.dataset.coverSource || 0) + 1;
+    if (next < sources.length) setCoverSource(cover, sources, next);
+  });
+  setCoverSource(cover, sources);
 
   const entry = document.createElement("div");
   entry.className = "entry";
@@ -80,7 +108,7 @@ function renderEntry(item) {
     entry.append(tags);
   }
 
-  article.append(entry);
+  article.append(cover, entry);
   return article;
 }
 
