@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const [source, destination = "data/catalog"] = process.argv.slice(2);
@@ -14,6 +14,13 @@ function cleanTitle(value) {
   }
   return title.replace(/\s+/g, " ").trim() || "Documento";
 }
+// Elimina apenas os registros que pertenciam exclusivamente à categoria removida.
+// Os demais livros conservam todas as outras categorias.
+const removedCategory = "outros estudos e documentos esotericos";
+const normalizeCategory = (value) => String(value)
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+const isRemovedCategory = (value) => normalizeCategory(value) === removedCategory;
+
 const records = input
   .map(({ identifier, title, creator, categories, pdf_url }) => ({
     identifier,
@@ -22,7 +29,10 @@ const records = input
     categories: Array.isArray(categories) ? categories : [],
     pdf_url,
   }))
-  .filter((item) => item.pdf_url)
+  .filter((item) => item.pdf_url && !(
+    item.categories.length > 0 && item.categories.every(isRemovedCategory)
+  ))
+  .map((item) => ({ ...item, categories: item.categories.filter((category) => !isRemovedCategory(category)) }))
   .sort((left, right) => left.title.localeCompare(right.title, "pt-BR"));
 
 const chunkSize = 500;
@@ -34,4 +44,19 @@ for (let start = 0; start < records.length; start += chunkSize) {
   await writeFile(resolve(output, name), JSON.stringify(records.slice(start, start + chunkSize)), "utf8");
   parts.push(name);
 }
-await writeFile(resolve(output, "manifest.json"), JSON.stringify({ version: 3, records: records.length, parts }, null, 2), "utf8");
+// Limpa partes de versões antigas que não são mais referenciadas pelo manifesto.
+for (const filename of await readdir(output)) {
+  if (/^part-\d+\.json$/.test(filename) && !parts.includes(filename)) {
+    await unlink(resolve(output, filename));
+  }
+}
+
+const manifestPath = resolve(output, "manifest.json");
+let version = 1;
+try {
+  const previous = JSON.parse(await readFile(manifestPath, "utf8"));
+  version = Number(previous.version || 0) + 1;
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+await writeFile(manifestPath, JSON.stringify({ version, records: records.length, parts }, null, 2), "utf8");

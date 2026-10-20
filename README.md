@@ -5,7 +5,7 @@ Agregador estático de PDFs de magia e ocultismo hospedados no Archive.org.
 ## Idiomas e catálogos
 
 A pesquisa oferece quatro opções: português, inglês, espanhol e todas.
-Os **9.218 registros originais** pertencem ao catálogo português.
+O catálogo português possui **7.109 livros**: foram excluídos 2.109 registros que tinham apenas a categoria `Outros Estudos e Documentos Esotéricos`. Outros 118 registros com categorias adicionais foram mantidos, removendo-se somente essa etiqueta.
 O catálogo inglês começa com oito obras; o catálogo espanhol está preparado, mas ainda vazio.
 
 - `data/catalog/`: português (manifesto e 19 partes existentes).
@@ -22,7 +22,7 @@ Para ampliar inglês ou espanhol, inclua documentos de acesso público com links
 - `assets/css/main.css`: aparência e responsividade.
 - `assets/js/app.js`: busca, filtros, resultados, capas e paginação.
 - `assets/js/catalog.js`: carregamento independente dos idiomas.
-- `scripts/split-catalog.mjs`: refaz o catálogo português a partir de um JSON validado.
+- `scripts/split-catalog.mjs`: refaz o catálogo português a partir de um JSON validado e impede a reinserção da categoria removida, preservando os registros com outras categorias.
 
 ## Atualizar o catálogo português
 
