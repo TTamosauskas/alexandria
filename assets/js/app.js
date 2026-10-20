@@ -6,33 +6,44 @@ const field = document.querySelector("#search-input");
 const status = document.querySelector("#status");
 const results = document.querySelector("#results");
 const sentinel = document.querySelector("#results-sentinel");
+const radios = Array.from(document.querySelectorAll('input[name="idioma"]'));
 const placeholderCover = "assets/cover-placeholder.svg";
+const validLanguages = new Set(["pt", "en", "es", "all"]);
 
-let catalog = [];
 let matches = [];
 let visible = 0;
-let catalogPromise;
+let requestId = 0;
+const indexPromises = new Map();
+
+function languageFrom(value) {
+  return validLanguages.has(value) ? value : "all";
+}
+
+function selectedLanguage() {
+  return radios.find((radio) => radio.checked)?.value || "all";
+}
+
+function setSelectedLanguage(language) {
+  const current = languageFrom(language);
+  radios.forEach((radio) => { radio.checked = radio.value === current; });
+}
 
 function queryState() {
   const params = new URLSearchParams(location.search);
-  return { query: params.get("q") || "", category: params.get("categoria") || "" };
+  return {
+    query: params.get("q") || "",
+    category: params.get("categoria") || "",
+    language: languageFrom(params.get("idioma")),
+    browse: params.has("q") || params.has("categoria") || params.has("idioma"),
+  };
 }
 
-function setUrl(query, category = "") {
+function setUrl(query, category = "", language = "all") {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (category) params.set("categoria", category);
-  history.pushState({}, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
-}
-
-function find(query, category) {
-  const words = normalize(query).split(/\s+/).filter(Boolean);
-  const normalizedCategory = normalize(category);
-  return catalog.filter((item) => {
-    const matchesCategory = !normalizedCategory || item.categorySearch.includes(normalizedCategory);
-    const haystack = `${item.search} ${item.categorySearch}`;
-    return matchesCategory && words.every((word) => haystack.includes(word));
-  });
+  params.set("idioma", languageFrom(language));
+  history.pushState({}, "", location.pathname + "?" + params.toString());
 }
 
 function cleanTitle(value) {
@@ -45,11 +56,40 @@ function cleanTitle(value) {
   return title.replace(/\s+/g, " ").trim() || "Documento";
 }
 
+function indexedCatalog(language) {
+  if (!indexPromises.has(language)) {
+    const request = loadCatalog(language).then((items) => items.map((item) => {
+      const title = cleanTitle(item.title);
+      return {
+        ...item,
+        title,
+        search: normalize(title + " " + (item.creator || "")),
+        categorySearch: normalize((item.categories || []).join(" ")),
+      };
+    })).catch((error) => {
+      indexPromises.delete(language);
+      throw error;
+    });
+    indexPromises.set(language, request);
+  }
+  return indexPromises.get(language);
+}
+
+function find(items, query, category) {
+  const words = normalize(query).split(/\s+/).filter(Boolean);
+  const normalizedCategory = normalize(category);
+  return items.filter((item) => {
+    const matchesCategory = !normalizedCategory || item.categorySearch.includes(normalizedCategory);
+    const haystack = item.search + " " + item.categorySearch;
+    return matchesCategory && words.every((word) => haystack.includes(word));
+  });
+}
+
 function coverSources(identifier) {
   const item = encodeURIComponent(identifier);
   return [
-    `https://archive.org/services/img/${item}`,
-    `https://archive.org/download/${item}/page/n0.jpg`,
+    "https://archive.org/services/img/" + item,
+    "https://archive.org/download/" + item + "/page/n0.jpg",
     placeholderCover,
   ];
 }
@@ -57,13 +97,6 @@ function coverSources(identifier) {
 function setCoverSource(image, sources, index = 0) {
   image.dataset.coverSource = String(index);
   image.src = sources[index];
-}
-
-function render() {
-  const entries = matches.slice(0, visible);
-  results.replaceChildren(...entries.map(renderEntry));
-  if (matches.length) status.textContent = `${matches.length.toLocaleString("pt-BR")} documentos`;
-  else status.textContent = field.value || queryState().category ? "Nenhum documento encontrado" : "";
 }
 
 function renderEntry(item) {
@@ -99,7 +132,7 @@ function renderEntry(item) {
     item.categories.forEach((category) => {
       const tag = document.createElement("li");
       const link = document.createElement("a");
-      link.href = `?categoria=${encodeURIComponent(category)}`;
+      link.href = "?categoria=" + encodeURIComponent(category) + "&idioma=" + encodeURIComponent(selectedLanguage());
       link.dataset.category = category;
       link.textContent = category;
       tag.append(link);
@@ -112,39 +145,77 @@ function renderEntry(item) {
   return article;
 }
 
-async function ensureCatalog() {
-  if (catalog.length) return catalog;
-  if (!catalogPromise) {
-    catalogPromise = loadCatalog().then((items) => items.map((item) => ({
-      ...item,
-      title: cleanTitle(item.title),
-      search: normalize(`${cleanTitle(item.title)} ${item.creator || ""}`),
-      categorySearch: normalize((item.categories || []).join(" ")),
-    })));
+function appendNextPage() {
+  if (visible >= matches.length) return;
+  const fragment = document.createDocumentFragment();
+  const end = Math.min(visible + pageSize, matches.length);
+  for (let index = visible; index < end; index++) {
+    fragment.append(renderEntry(matches[index]));
   }
-  catalog = await catalogPromise;
-  return catalog;
+  results.append(fragment);
+  visible = end;
 }
 
-async function search(query = field.value, category = "") {
+function showMatches(language) {
+  results.replaceChildren();
+  visible = 0;
+  if (matches.length) {
+    status.textContent = matches.length.toLocaleString("pt-BR") + " documentos";
+    appendNextPage();
+  } else if (language === "es") {
+    status.textContent = "O catálogo em espanhol ainda não possui documentos.";
+  } else {
+    status.textContent = "Nenhum documento encontrado";
+  }
+}
+
+async function search(query = field.value, category = "", language = selectedLanguage(), browse = true) {
+  const currentRequest = ++requestId;
+  const activeLanguage = languageFrom(language);
   field.value = query;
-  if (!query.trim() && !category) {
+  setSelectedLanguage(activeLanguage);
+
+  if (!browse && !query.trim() && !category) {
     matches = [];
     visible = 0;
-    render();
+    results.replaceChildren();
+    status.textContent = "";
     return;
   }
+
   status.textContent = "Carregando catálogo…";
-  await ensureCatalog();
-  matches = find(query, category);
-  visible = pageSize;
-  render();
+  try {
+    const items = await indexedCatalog(activeLanguage);
+    if (currentRequest !== requestId) return;
+    matches = find(items, query, category);
+    if (activeLanguage === "all") {
+      matches.sort((left, right) => left.title.localeCompare(right.title, "pt-BR"));
+    }
+    showMatches(activeLanguage);
+  } catch (error) {
+    if (currentRequest !== requestId) return;
+    matches = [];
+    visible = 0;
+    results.replaceChildren();
+    status.textContent = "Não foi possível carregar o catálogo. Tente novamente.";
+    console.error(error);
+  }
 }
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  setUrl(field.value);
-  search(field.value);
+  const language = selectedLanguage();
+  setUrl(field.value, "", language);
+  search(field.value, "", language);
+});
+
+radios.forEach((radio) => {
+  radio.addEventListener("change", () => {
+    if (!radio.checked) return;
+    const category = queryState().category;
+    setUrl(field.value, category, radio.value);
+    search(field.value, category, radio.value);
+  });
 });
 
 results.addEventListener("click", (event) => {
@@ -152,22 +223,22 @@ results.addEventListener("click", (event) => {
   if (!link) return;
   event.preventDefault();
   const category = link.dataset.category;
-  setUrl("", category);
-  search("", category);
+  const language = selectedLanguage();
+  setUrl("", category, language);
+  search("", category, language);
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 const observer = new IntersectionObserver((entries) => {
   if (!entries.some((entry) => entry.isIntersecting) || visible >= matches.length) return;
-  visible += pageSize;
-  render();
+  appendNextPage();
 }, { rootMargin: "480px 0px" });
 observer.observe(sentinel);
 
 window.addEventListener("popstate", () => {
-  const { query, category } = queryState();
-  search(query, category);
+  const state = queryState();
+  search(state.query, state.category, state.language, state.browse);
 });
 
 const initial = queryState();
-if (initial.query || initial.category) search(initial.query, initial.category);
+search(initial.query, initial.category, initial.language, initial.browse);

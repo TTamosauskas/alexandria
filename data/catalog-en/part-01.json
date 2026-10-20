@@ -1,0 +1,84 @@
+[
+  {
+    "identifier": "A.EWaiteCeremonialMagic",
+    "title": "The Book of Ceremonial Magic",
+    "creator": "Arthur Edward Waite",
+    "categories": [
+      "Ceremonial Magic",
+      "Grimoires"
+    ],
+    "pdf_url": "https://archive.org/download/A.EWaiteCeremonialMagic/A.%20E%20Waite%20-%20Ceremonial%20Magic.pdf"
+  },
+  {
+    "identifier": "cu31924021569128",
+    "title": "The Golden Bough: A Study in Magic and Religion",
+    "creator": "James George Frazer",
+    "categories": [
+      "Comparative Religion",
+      "Mythology",
+      "Magic"
+    ],
+    "pdf_url": "https://archive.org/download/cu31924021569128/cu31924021569128.pdf"
+  },
+  {
+    "identifier": "greaterkeyofsolo00solo",
+    "title": "The Greater Key of Solomon",
+    "creator": "S. L. MacGregor Mathers",
+    "categories": [
+      "Grimoires",
+      "Ceremonial Magic"
+    ],
+    "pdf_url": "https://archive.org/download/greaterkeyofsolo00solo/greaterkeyofsolo00solo.pdf"
+  },
+  {
+    "identifier": "kybalionstudyofh00init",
+    "title": "The Kybalion: A Study of the Hermetic Philosophy",
+    "creator": "Three Initiates",
+    "categories": [
+      "Hermeticism",
+      "Occult Philosophy"
+    ],
+    "pdf_url": "https://archive.org/download/kybalionstudyofh00init/kybalionstudyofh00init.pdf"
+  },
+  {
+    "identifier": "goetia_202006",
+    "title": "The Lesser Key of Solomon: Goetia",
+    "creator": "S. L. MacGregor Mathers; Aleister Crowley",
+    "categories": [
+      "Goetia",
+      "Grimoires",
+      "Ceremonial Magic"
+    ],
+    "pdf_url": "https://archive.org/download/goetia_202006/goetia.pdf"
+  },
+  {
+    "identifier": "A.EWaiteThePictorialKeyToTheTarot",
+    "title": "The Pictorial Key to the Tarot",
+    "creator": "Arthur Edward Waite",
+    "categories": [
+      "Tarot",
+      "Divination"
+    ],
+    "pdf_url": "https://archive.org/download/A.EWaiteThePictorialKeyToTheTarot/A.%20E%20Waite%20-%20The%20Pictorial%20Key%20to%20the%20Tarot.pdf"
+  },
+  {
+    "identifier": "secretdoctrinesy01blav",
+    "title": "The Secret Doctrine, Volume I: Cosmogenesis",
+    "creator": "Helena Petrovna Blavatsky",
+    "categories": [
+      "Theosophy",
+      "Occult Philosophy"
+    ],
+    "pdf_url": "https://archive.org/download/secretdoctrinesy01blav/secretdoctrinesy01blav.pdf"
+  },
+  {
+    "identifier": "transcendentalma00leviuoft",
+    "title": "Transcendental Magic: Its Doctrine and Ritual",
+    "creator": "Éliphas Lévi; translated by Arthur Edward Waite",
+    "categories": [
+      "Ceremonial Magic",
+      "Occult Philosophy"
+    ],
+    "pdf_url": "https://archive.org/download/transcendentalma00leviuoft/transcendentalma00leviuoft.pdf"
+  }
+]

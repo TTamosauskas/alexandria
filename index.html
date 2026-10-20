@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Biblioteca Oculta" />
+    <meta name="description" content="Biblioteca Oculta — Agregador de PDFs de magia e ocultismo." />
     <title>Biblioteca Oculta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,9 +14,19 @@
   <body>
     <main class="library" id="library">
       <h1>Biblioteca Oculta</h1>
+      <p class="subtitle">Agregador de pdfs de magia e ocultismo.</p>
+      <fieldset class="language-filter">
+        <legend>Idioma dos documentos</legend>
+        <div class="language-options">
+          <label><input type="radio" name="idioma" value="pt" /> português</label>
+          <label><input type="radio" name="idioma" value="en" /> inglês</label>
+          <label><input type="radio" name="idioma" value="es" /> espanhol</label>
+          <label><input type="radio" name="idioma" value="all" checked /> todas</label>
+        </div>
+      </fieldset>
       <form class="search" id="search-form" role="search">
         <label class="sr-only" for="search-input">Pesquisar documentos</label>
-        <input id="search-input" name="q" type="search" autocomplete="off" placeholder="Pesquise em até 23.000 documentos" />
+        <input id="search-input" name="q" type="search" autocomplete="off" placeholder="Pesquise por título, autor ou tema" />
         <button type="submit">Pesquisar</button>
       </form>
       <p class="status" id="status" aria-live="polite"></p>
