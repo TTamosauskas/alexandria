@@ -1,5 +1,5 @@
 import { loadCatalog, normalize } from "./catalog.js";
-import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js";
+import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=ratings-off-1";
 
 const pageSize = 24;
 const form = document.querySelector("#search-form");
@@ -190,7 +190,12 @@ async function search(query = field.value, category = "", language = selectedLan
     }
     if (currentRequest !== requestId) return;
     matches = find(items, query, category);
-    matches.sort(compareByRating);
+    if (ratingsEnabled) {
+      matches.sort(compareByRating);
+    } else if (activeLanguage === "all") {
+      // Sem notas, preserva a ordenacao original do catalogo por idioma.
+      matches.sort((left, right) => left.title.localeCompare(right.title, "pt-BR"));
+    }
     showMatches(activeLanguage);
   } catch (error) {
     if (currentRequest !== requestId) return;

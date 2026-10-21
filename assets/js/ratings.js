@@ -1,6 +1,6 @@
 import { RATINGS_CONFIG } from "./ratings-config.js";
 
-export const ratingsEnabled = Boolean(RATINGS_CONFIG.apiBaseUrl && RATINGS_CONFIG.turnstileSiteKey);
+export const ratingsEnabled = Boolean(RATINGS_CONFIG.enabled === true && RATINGS_CONFIG.apiBaseUrl && RATINGS_CONFIG.turnstileSiteKey);
 const apiBase = RATINGS_CONFIG.apiBaseUrl.replace(/\/+$/, "");
 const ratingCache = new Map();
 const knownBooks = new Map();

@@ -6,7 +6,7 @@ import test from "node:test";
 const source = readFileSync(new URL("../../assets/js/ratings.js", import.meta.url), "utf8");
 const isolated = source.replace(
   /^import \{ RATINGS_CONFIG \} from "\.\/ratings-config\.js";/m,
-  'const RATINGS_CONFIG = { apiBaseUrl: "https://ratings.example.test", turnstileSiteKey: "test-public-key" };'
+  'const RATINGS_CONFIG = { enabled: true, apiBaseUrl: "https://ratings.example.test", turnstileSiteKey: "test-public-key" };'
 );
 assert.notEqual(source, isolated, "o modulo de avaliacoes deve ter sido carregado");
 
