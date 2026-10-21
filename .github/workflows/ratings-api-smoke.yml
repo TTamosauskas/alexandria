@@ -1,0 +1,25 @@
+name: Validar API Cloudflare publicada
+
+on:
+  push:
+    branches:
+      - feature/cloudflare-ratings
+    paths:
+      - '.github/workflows/ratings-api-smoke.yml'
+      - 'cloudflare/test/live-api.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar endpoints de producao sem alterar dados
+        run: node cloudflare/test/live-api.mjs

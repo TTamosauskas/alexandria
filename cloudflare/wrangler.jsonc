@@ -1,0 +1,18 @@
+{
+  "$schema": "https://www.schemastore.org/wrangler.json",
+  "name": "alexandria-ratings",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-20",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alexandria-ratings",
+      "database_id": "24448180-cb5b-4b97-b008-d82d9fe109dd",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://ttamosauskas.github.io",
+    "TURNSTILE_HOSTNAME": "ttamosauskas.github.io"
+  }
+}

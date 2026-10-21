@@ -1,0 +1,34 @@
+name: Test Cloudflare ratings
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare/**'
+      - 'assets/js/app.js'
+      - 'assets/js/ratings.js'
+      - 'assets/js/ratings-config.js'
+  push:
+    branches:
+      - feature/cloudflare-ratings
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/js/app.js
+          node --check assets/js/ratings.js
+          node --check assets/js/ratings-config.js
+          node --check cloudflare/src/index.js
+      - name: Run Worker tests
+        run: npm test --prefix cloudflare
+      - name: Test D1 migration schema
+        run: python3 cloudflare/test/check_migration.py

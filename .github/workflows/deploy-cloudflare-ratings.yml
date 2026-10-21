@@ -1,0 +1,102 @@
+name: Publicar API de avaliações na Cloudflare
+
+# Só roda na branch de testes. A branch main e o GitHub Pages não são alterados.
+on:
+  push:
+    branches:
+      - feature/cloudflare-ratings
+    paths:
+      - .github/workflows/deploy-cloudflare-ratings.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alexandria-cloudflare-ratings
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/feature/cloudflare-ratings'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: cloudflare
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
+      CI: "true"
+    steps:
+      - name: Obter codigo da branch de testes
+        uses: actions/checkout@v4
+
+      - name: Validar autorizacoes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TURNSTILE_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Configure o segredo $name em Settings > Secrets and variables > Actions, antes de reexecutar o workflow."
+              exit 1
+            fi
+          done
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Instalar Wrangler
+        run: npm install --no-save --no-package-lock wrangler@4.97.0
+
+      - name: Testar API e esquema do banco
+        run: |
+          npm test
+          python3 test/check_migration.py
+
+      - name: Criar tabelas na D1 existente
+        run: npx wrangler d1 migrations apply alexandria-ratings --remote
+
+      - name: Publicar Worker
+        run: npx wrangler deploy
+
+      - name: Definir segredo Turnstile
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$TURNSTILE_SECRET" | npx wrangler secret put TURNSTILE_SECRET
+
+      - name: Criar identificador privado de votos somente se inexistente
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXISTING="$(npx wrangler secret list --format json)"
+          STATUS="$(printf '%s' "$EXISTING" | node -e '
+            let json = "";
+            process.stdin.setEncoding("utf8");
+            process.stdin.on("data", (chunk) => json += chunk);
+            process.stdin.on("end", () => {
+              const secrets = JSON.parse(json);
+              if (!Array.isArray(secrets)) process.exit(2);
+              console.log(secrets.some((item) => item.name === "VOTER_HASH_SECRET") ? "exists" : "missing");
+            });
+          ')"
+          if [[ "$STATUS" == "missing" ]]; then
+            node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))" |
+              npx wrangler secret put VOTER_HASH_SECRET
+            echo "Identificador privado criado na Cloudflare; valor nao exibido."
+          elif [[ "$STATUS" == "exists" ]]; then
+            echo "Identificador privado existente preservado."
+          else
+            echo "::error::Nao foi possivel validar os segredos existentes."
+            exit 1
+          fi
+
+      - name: Orientar verificacao
+        run: |
+          echo "Confira o endereco workers.dev informado no passo Publicar Worker."
+          echo "Abra <URL>/api/health e <URL>/api/ratings antes de ativar o frontend."
+          echo "Nao publique a branch main sem validar uma avaliacao real."
