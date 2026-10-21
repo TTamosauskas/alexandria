@@ -25,8 +25,10 @@ export async function assignRatingIds(items) {
 
 export async function loadRatings() {
   if (!ratingsEnabled) return;
+  // Compartilha apenas requisicoes simultaneas. Uma nova busca deve consultar
+  // a media atual, inclusive votos feitos em outra aba ou por outro visitante.
   if (!catalogRatingsPromise) {
-    catalogRatingsPromise = fetch(apiBase + "/api/ratings", { mode: "cors" })
+    catalogRatingsPromise = fetch(apiBase + "/api/ratings", { mode: "cors", cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error("Servidor de avaliações indisponível");
         return response.json();
@@ -42,9 +44,9 @@ export async function loadRatings() {
           }
         }
       })
-      .catch((error) => {
+      .finally(() => {
+        // O cache fica apenas nos dados. O proximo GET nao reutiliza uma Promise resolvida.
         catalogRatingsPromise = null;
-        throw error;
       });
   }
   return catalogRatingsPromise;

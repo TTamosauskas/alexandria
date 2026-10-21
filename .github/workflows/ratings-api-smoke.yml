@@ -3,8 +3,10 @@ name: Validar API Cloudflare publicada
 on:
   push:
     branches:
+      - main
       - feature/cloudflare-ratings
     paths:
+      - 'assets/js/ratings.js'
       - '.github/workflows/ratings-api-smoke.yml'
       - 'cloudflare/test/live-api.mjs'
   workflow_dispatch:

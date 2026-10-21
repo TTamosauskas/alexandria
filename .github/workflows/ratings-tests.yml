@@ -9,7 +9,14 @@ on:
       - 'assets/js/ratings-config.js'
   push:
     branches:
+      - main
       - feature/cloudflare-ratings
+    paths:
+      - 'cloudflare/**'
+      - 'assets/js/app.js'
+      - 'assets/js/ratings.js'
+      - 'assets/js/ratings-config.js'
+      - '.github/workflows/ratings-tests.yml'
 
 permissions:
   contents: read
