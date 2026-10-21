@@ -1,6 +1,6 @@
 const manifestUrls = {
   pt: new URL("../../data/catalog/manifest.json?v=6", import.meta.url),
-  en: new URL("../../data/catalog-en/manifest.json?v=2", import.meta.url),
+  en: new URL("../../data/catalog-en/manifest.json?v=3", import.meta.url),
   es: new URL("../../data/catalog-es/manifest.json?v=2", import.meta.url),
 };
 
