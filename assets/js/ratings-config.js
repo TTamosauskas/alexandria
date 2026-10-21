@@ -1,6 +1,6 @@
 // Somente valores públicos. Nunca coloque chaves secretas neste arquivo.
-// A Site Key pública está configurada. Preencha apiBaseUrl somente após validar a API.
+// A API foi validada em GitHub Actions; a URL é pública e não contém credenciais.
 export const RATINGS_CONFIG = Object.freeze({
-  apiBaseUrl: "",
+  apiBaseUrl: "https://alexandria-ratings.thiago-gt.workers.dev",
   turnstileSiteKey: "0x4AAAAAAFeAofBJb0OQ9pGs",
 });

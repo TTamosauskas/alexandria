@@ -131,3 +131,16 @@ e cria automaticamente uma chave aleatória de 32 bytes para
 as chaves no código-fonte. O token de API pode ser revogado depois do
 deploy se não desejar novas publicações. O fluxo está restrito à branch
 de testes e não se executa no GitHub Pages.
+
+## Situação verificada da API (21/10/2026)
+
+O Worker foi publicado em `https://alexandria-ratings.thiago-gt.workers.dev` pela branch de testes.
+A execução do [smoke test](https://github.com/TTamosauskas/alexandria/actions/runs/39651091120) validou:
+
+- D1 vinculado (`GET /api/health` = 200).
+- Lista de avaliações vazia (`GET /api/ratings` = 200).
+- CORS aceitando apenas a origem da Biblioteca Oculta.
+- Rejeição de notas inválidas e tokens Turnstile falsos.
+
+A URL pública da API e a Site Key pública foram preenchidas em `assets/js/ratings-config.js` nesta branch.
+O **envio real de voto com Turnstile válido** ainda precisa ser testado em um navegador na origem autorizada. Não faça merge automático na `main` enquanto este teste final não estiver concluído.
