@@ -244,11 +244,19 @@ window.addEventListener("popstate", () => {
   search(state.query, state.category, state.language, state.browse);
 });
 
-initializeRatings(results, () => {
+initializeRatings(results, (ratedBookId) => {
+  const previouslyVisible = visible;
   matches.sort(compareByRating);
   results.replaceChildren();
   visible = 0;
-  appendNextPage();
+  // Preserva as paginas ja carregadas enquanto a nova ordenacao e aplicada.
+  while (visible < previouslyVisible && visible < matches.length) {
+    appendNextPage();
+  }
+  // O livro avaliado pode subir no ranking; mantemos a nota atualizada visivel.
+  const updatedStar = results.querySelector('[data-rating-book="' + ratedBookId + '"]');
+  updatedStar?.closest(".result")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  status.textContent = "Avaliação registrada. " + matches.length.toLocaleString("pt-BR") + " documentos";
 });
 
 const initial = queryState();

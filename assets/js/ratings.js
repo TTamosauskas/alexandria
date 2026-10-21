@@ -203,7 +203,7 @@ async function submitRating() {
       count: Number(payload.rating.count),
     });
     closeDialog();
-    updateCallback();
+    updateCallback(book.ratingId);
   } catch (error) {
     dialog.querySelector(".rating-dialog-feedback").textContent =
       error.message || "Não foi possível registrar o voto.";
