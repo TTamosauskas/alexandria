@@ -78,12 +78,17 @@ button:hover, button:focus-visible { background: #87040d; }
 .search-suggestions button { display:block; width:100%; background:white; color:var(--ink); font-size:1rem; line-height:1.3; text-align:left; padding:11px 14px; border-bottom:1px solid #eee; }
 .search-suggestions button:hover, .search-suggestions button:focus-visible { background:#f8eded; color:var(--red); }
 mark { background:#faeab4; color:inherit; }
-.favorite-toggle { display:inline-block; font-size:.95rem; padding:5px 8px; margin-left:12px; background:transparent; color:var(--red); border:1px solid transparent; vertical-align:middle; }
+.entry-heading { display:flex; align-items:flex-start; gap:12px; width:100%; min-width:0; }
+.entry-heading .title { display:block; flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+.favorite-toggle { display:flex; flex:0 0 44px; width:44px; height:44px; margin:-7px -5px 0 auto; padding:9px; justify-content:center; align-items:center; background:transparent; color:var(--red); border:1px solid transparent; border-radius:4px; }
+.favorite-toggle svg { display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.favorite-toggle[aria-pressed="true"] svg { fill:currentColor; }
 .favorite-toggle:hover, .favorite-toggle:focus-visible { background:#f8eeee; border-color:#eadada; }
-.favorite-toggle[aria-pressed="true"] { font-weight:bold; }
+.favorite-toggle:focus-visible { outline:2px solid var(--red); outline-offset:2px; }
 @media (max-width:620px) {
   .library-tabs { gap:6px; }
   .library-tabs button { padding:9px 10px; font-size:.96rem; }
   .search-field { width:100%; }
-  .favorite-toggle { margin-left:0; margin-top:7px; display:block; }
+  .entry-heading { gap:8px; }
+  .favorite-toggle { margin-right:-4px; }
 }
