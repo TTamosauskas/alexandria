@@ -50,3 +50,12 @@ test("layout inclui botão ocultável, segundo relatório e aviso de que não h�
  assert.match(html,/não é automático/);
  assert.match(html,/id="copyright-sent"/);
 });
+
+test("texto introdutório da denúncia precede o formulário e aviso sob a busca não aparece",()=>{
+ const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+ const intro="Não é nossa intenção ferir direitos de autores e editoras. Porém esse agregador não hospeda nenhum arquivo. Abaixo ajudamos você formalizar denuncia e solicitação de retirada na hospedagem correta.";
+ assert.ok(html.includes(intro));
+ assert.ok(html.indexOf(intro) < html.indexOf('<form id="copyright-form"'));
+ assert.doesNotMatch(html,/As pesquisas realizadas podem aparecer em um histórico público/);
+ assert.doesNotMatch(html,/class="search-privacy"/);
+});
