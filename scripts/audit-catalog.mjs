@@ -17,6 +17,7 @@ const report = {
   auditedAt: new Date().toISOString(),
   expectedTotal: 0, actualTotal: 0,
   languages: {},
+  duplicateCount: 0,
   duplicates: [],
   invalidUrls: [],
   missingTitles: [],
@@ -49,6 +50,7 @@ function checkStructure(record, location, language) {
   if (link) {
     const key = link.toLowerCase();
     if (seenUrls.has(key)) {
+      report.duplicateCount++;
       if (report.duplicates.length < 200) {
         report.duplicates.push({ first: seenUrls.get(key), repeated: location, url: link });
       }
@@ -123,6 +125,7 @@ if (online && sampleLimit) {
 const summary = {
   total: report.actualTotal,
   expected: report.expectedTotal,
+  duplicateUrls: report.duplicateCount,
   duplicateUrlsSample: report.duplicates.length,
   invalidUrls: report.invalidUrls.length,
   missingTitles: report.missingTitles.length,

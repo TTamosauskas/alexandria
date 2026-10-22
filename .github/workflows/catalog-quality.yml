@@ -29,7 +29,7 @@ jobs:
       - name: Conferir integridade dos manifestos e PDFs duplicados
         run: node scripts/audit-catalog.mjs --output=reports/catalog-quality.json
       - name: Verificar amostra de links públicos do Archive.org
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feature/discovery-shelf-catalog-quality'
         run: node scripts/audit-catalog.mjs --check-links --sample=24 --output=reports/catalog-quality.json
       - name: Guardar relatório para inspeção
         if: always()

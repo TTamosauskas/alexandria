@@ -29,6 +29,7 @@ test("histórico mantém ordem recente sem entradas duplicadas",()=>withStorage(
   rememberOpened(a); rememberOpened(b); rememberOpened(a);
   assert.deepEqual(getShelf("recent").map(x=>x.title),["A","B"]);
   assert.notEqual(itemKey(a),itemKey(book("A","en")));
+  assert.equal(itemKey(a).includes("\0"),false);
 }));
 test("recusa links inseguros e tolera armazenamento inválido",()=>withStorage((map)=>{
   assert.equal(toggleFavorite({...book("A"),pdf_url:"javascript:alert(1)"}),false);

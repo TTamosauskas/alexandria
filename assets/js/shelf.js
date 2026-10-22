@@ -5,7 +5,7 @@ const MAX_RECENT = 40;
 let backup = { favorites: [], recent: [] };
 
 export function itemKey(item) {
-  return (item?.language || "pt") + "\0" + (item?.pdf_url || "");
+  return (item?.language || "pt") + "::" + (item?.pdf_url || "");
 }
 function safeItem(item) {
   if (!item || !["pt","en","es"].includes(item.language || "pt")) return null;
