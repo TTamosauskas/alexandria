@@ -53,3 +53,14 @@ O endereço \`https://ttamosauskas.github.io/alexandria/#editor\` exibe as **úl
 O frontend envia apenas \`query\`, \`category\` e \`language\`. A API armazena também ID incremental e data/hora. **Não** registra IP, login, identificador de visitante ou cookies para o histórico. O \`GET /api/search-history\` devolve a lista em ordem decrescente de registro e \`POST /api/search-history\` grava uma pesquisa válida. A migração \`0002_search_history.sql\` utiliza trigger D1/SQLite para eliminar automaticamente todas as entradas além das 500 mais recentes, sem alterar os votos.
 
 **Aviso de privacidade:** \`#editor\` é um endereço público, não protegido por senha. Pessoas que descobrirem o endereço poderão ler as pesquisas, que podem conter dados digitados pelos visitantes. O site informa antes da busca que as consultas podem aparecer nesse histórico público. Para uma página restrita seria necessária autenticação independente, nunca apenas um hash de URL.
+
+
+## Sinalizações de copyright
+
+A Biblioteca Oculta oferece, em cada resultado, o botão 📢 ("denunciar uso indevido"), que só fica visível ao passar o ponteiro sobre o resultado, focar pelo teclado ou tocar em uma região não interativa do cartão. O formulário coleta somente em memória do navegador dados exigidos para gerar uma notificação de copyright/DMCA: identificação do reclamante e do trabalho protegido, endereço, telefone, e-mail, explicação, declarações de boa-fé e sob pena de perjúrio, e assinatura. O usuário **copia o texto e o envia por conta própria** para `info@archive.org`. O site não envia e-mails nem armazena quaisquer desses dados pessoais.
+
+Depois de enviar o e-mail, o usuário pode clicar em **"Já enviei o e-mail: registrar link sinalizado"**. Isso registra somente URL do PDF, título e data em `reported_links` (migração `0003_reported_links.sql`). A mesma URL não é duplicada. A área `#editor` apresenta esses links em uma **segunda lista**, rotulada **"Links sinalizados por visitantes — não verificados"**. Uma sinalização **não comprova violação de direitos autorais** nem que o e-mail foi enviado ou aceito pelo Archive.org.
+
+A API oferece `GET /api/reported-links` e `POST /api/reported-links`. Como o sistema não exige login, a marcação de envio depende da declaração do visitante e pode ser usada indevidamente; somente o Archive.org avalia o mérito e eventual remoção.
+
+As orientações para a notificação foram conferidas no [post fornecido do Archive.org](https://archive.org/post/1026511/email-address-to-send-removal-request) e na [política de direitos do Archive.org](https://archivesupport.zendesk.com/hc/en-us/articles/360014759692-Rights).

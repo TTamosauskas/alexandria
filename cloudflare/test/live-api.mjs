@@ -86,3 +86,19 @@ const emptySearch = await request("/api/search-history", {
 });
 assert.equal(emptySearch.status, 400, "Consulta vazia deve ser recusada");
 console.log("OK POST /api/search-history — entrada vazia rejeitada");
+
+
+const reported = await request("/api/reported-links", { headers: { Origin: origin } });
+assert.equal(reported.status, 200, "GET reported links deve responder 200");
+const reportsBody = await reported.json();
+assert.ok(Array.isArray(reportsBody.reports), "Lista de sinalizações inválida");
+assert.ok(reportsBody.reports.every((entry) => typeof entry.pdfUrl === "string"
+  && typeof entry.title === "string" && !Object.hasOwn(entry, "complainantEmail")));
+console.log("OK /api/reported-links —", reportsBody.reports.length, "links sinalizados");
+
+const invalidReport = await request("/api/reported-links", {
+  method: "POST",
+  headers: { Origin: origin, "Content-Type": "application/json" },
+  body: JSON.stringify({ pdfUrl: "https://example.org/fake.pdf", title: "Teste" }),
+});
+assert.equal(invalidReport.status, 400, "Não registrar links inválidos");

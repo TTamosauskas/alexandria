@@ -60,3 +60,16 @@ try:
 except sqlite3.IntegrityError:
     pass
 print("Histórico limitado às últimas 500 pesquisas: OK")
+
+
+# Links sinalizados não armazenam PII e são únicos por URL.
+report_schema = (root / "migrations" / "0003_reported_links.sql").read_text(encoding="utf-8")
+db.executescript(report_schema)
+archive_link = "https://archive.org/download/example/file.pdf"
+db.execute("INSERT INTO reported_links (pdf_url, title) VALUES (?, ?)", (archive_link, "Livro"))
+db.execute("INSERT INTO reported_links (pdf_url, title) VALUES (?, ?) ON CONFLICT(pdf_url) DO NOTHING",
+           (archive_link, "Livro"))
+assert db.execute("SELECT COUNT(*) FROM reported_links").fetchone()[0] == 1
+columns = [row[1] for row in db.execute("PRAGMA table_info(reported_links)")]
+assert set(columns) == {"pdf_url", "title", "created_at"}
+print("Sinalizações de links, sem dados pessoais: OK")
