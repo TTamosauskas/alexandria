@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="assets/css/main.css?v=copyright-v2" />
+    <link rel="stylesheet" href="assets/css/main.css?v=copyright-v3" />
     <script type="module" src="assets/js/app.js?v=copyright-v1"></script>
   </head>
   <body>
@@ -57,7 +57,6 @@
       <button type="button" id="copyright-back" class="copyright-back">← Voltar aos resultados</button>
       <h1>Denunciar uso indevido</h1>
       <p class="copyright-intro">Não é nossa intenção ferir direitos de autores e editoras. Porém esse agregador não hospeda nenhum arquivo. Abaixo ajudamos você formalizar denuncia e solicitação de retirada na hospedagem correta.</p>
-      <p class="copyright-help">Este formulário prepara uma notificação de direitos autorais ao Internet Archive. Só o titular dos direitos ou seu representante autorizado deve declarar infração. Enviar o e-mail não é automático.</p>
       <p id="copyright-book" class="copyright-book"></p>
       <form id="copyright-form" class="copyright-form">
         <label>Nome completo do reclamante <input name="fullName" type="text" maxlength="160" required autocomplete="name" /></label>
@@ -69,7 +68,10 @@
         </label>
         <label>Nome do titular dos direitos <input name="rightsOwner" type="text" maxlength="180" required /></label>
         <label>Obra protegida (título e identificação) <textarea name="copyrightedWork" maxlength="1200" rows="3" required></textarea></label>
-        <label>Explique a infração alegada e como identificar o uso não autorizado <textarea name="explanation" maxlength="3000" rows="4" required></textarea></label>
+        <label>Explique a infração alegada e como identificar o uso não autorizado (escreva em inglês)
+          <textarea name="explanation" maxlength="3000" rows="4" required aria-describedby="copyright-english-hint" lang="en" placeholder="Describe the alleged infringement in English..."></textarea>
+          <span class="copyright-field-hint" id="copyright-english-hint">Escreva esta explicação em inglês. O texto será incluído na mensagem final sem tradução automática.</span>
+        </label>
         <label>Endereço postal para contato <textarea name="address" maxlength="500" rows="2" required autocomplete="street-address"></textarea></label>
         <label>Telefone de contato <input type="tel" name="phone" maxlength="80" required autocomplete="tel" /></label>
         <label>E-mail de contato <input type="email" name="email" maxlength="220" required autocomplete="email" /></label>

@@ -149,3 +149,5 @@ mark { background:#faeab4; color:inherit; }
 #copyright-status { max-width:750px; margin:18px auto; color:#333; text-align:center; }
 
 .copyright-intro { max-width:750px; margin:14px auto 16px; text-align:center; font-size:1.14rem; line-height:1.45; }
+
+.copyright-field-hint { color:#595959; font-size:.92rem; line-height:1.35; }
