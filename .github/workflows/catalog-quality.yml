@@ -8,6 +8,9 @@ on:
     branches: [main, feature/discovery-shelf-catalog-quality]
     paths:
       - 'data/**'
+      - 'assets/js/**'
+      - 'index.html'
+      - 'assets/css/main.css'
       - 'scripts/audit-catalog.mjs'
       - 'tests/**'
       - '.github/workflows/catalog-quality.yml'
