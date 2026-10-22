@@ -28,7 +28,7 @@ test("erro de um caractere e transposição geram resultados corrigidos",()=>{
   assert.match(found.interpretation,/Resultados para/);
 });
 test("sugestões de título, com máximo definido e sem duplicações",()=>{
-  assert.deepEqual(suggestions(index,"tra",4),["Tratado de Alquimia"]);
+  assert.deepEqual(suggestions(index,"tra",4),["Tratado de Alquimia","Cabala e a Tradição"]);
   assert.deepEqual(suggestions(index,"CAB",3),["Cabala e a Tradição"]);
   assert.deepEqual(suggestions(index,"z",3),[]);
 });
