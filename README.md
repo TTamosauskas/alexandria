@@ -41,3 +41,10 @@ O workflow [Qualidade do catálogo](.github/workflows/catalog-quality.yml) verif
 - `assets/js/ratings.js` e `cloudflare/`: avaliações anônimas e Worker.
 
 Para executar localmente, sirva a raiz por HTTP. Não abra `index.html` diretamente usando `file://`.
+
+
+## Denúncia de direitos autorais
+
+O botão 📢 aparece no canto inferior direito do resultado ao passar o mouse, focar pelo teclado ou tocar em uma área livre. Ele abre um formulário para preparar uma notificação DMCA dirigida ao Internet Archive. Os campos exigem identificação e contato do reclamante, titular da obra, obra protegida, explicação, assinatura e as duas declarações legais; apenas titulares e representantes autorizados devem enviá-la.
+
+**A biblioteca não envia o e-mail automaticamente:** o visitante copia a mensagem e a encaminha para `info@archive.org`. Nome, telefone, endereço, e-mail e texto da denúncia não são persistidos nem enviados ao Worker da biblioteca. Após declarar que enviou a mensagem, o visitante pode sinalizar o link para uma segunda lista pública em `#editor`. A sinalização não é comprovação de infração, de envio efetivo ou de remoção.

@@ -125,6 +125,51 @@ async function saveSearchHistory(request, env, origin) {
   return respond({ recorded: true }, 201, origin);
 }
 
+
+const ARCHIVE_PDF_URL = /^https:\/\/archive\.org\/download\/[^?#]+\.pdf(?:\?[^#]*)?$/i;
+function safeReportedUrl(raw) {
+  if (typeof raw !== "string" || raw.length > 1800 || !ARCHIVE_PDF_URL.test(raw)) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.hostname !== "archive.org"
+      || !url.pathname.startsWith("/download/")) return null;
+    return url.href;
+  } catch { return null; }
+}
+
+// Lista publica de links sinalizados. Uma sinalizacao nao comprova infracao.
+async function listReportedLinks(env, origin) {
+  const rows = await env.DB.prepare(
+    "SELECT pdf_url AS pdfUrl, title, created_at AS reportedAt " +
+    "FROM reported_links ORDER BY created_at DESC, pdf_url ASC LIMIT 2000"
+  ).all();
+  return respond({ reports: rows.results || [] }, 200, origin);
+}
+
+async function markReportedLink(request, env, origin) {
+  if (!request.headers.get("Content-Type")?.startsWith("application/json"))
+    return respond({ error: "É necessário enviar JSON." }, 415, origin);
+  let input;
+  try {
+    const raw = await request.text();
+    if (raw.length > 4096) return respond({ error: "Requisição muito longa." }, 413, origin);
+    input = JSON.parse(raw);
+  } catch {
+    return respond({ error: "JSON inválido." }, 400, origin);
+  }
+  const pdfUrl = safeReportedUrl(input?.pdfUrl);
+  const title = typeof input?.title === "string" ? input.title.trim() : "";
+  if (!pdfUrl || !title || title.length > 300
+    || /[\u0000-\u001f\u007f]/.test(title))
+    return respond({ error: "Link ou título inválido." }, 400, origin);
+
+  await env.DB.prepare(
+    "INSERT INTO reported_links (pdf_url, title) VALUES (?, ?) " +
+    "ON CONFLICT(pdf_url) DO NOTHING"
+  ).bind(pdfUrl, title).run();
+  return respond({ recorded: true }, 201, origin);
+}
+
 export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
@@ -135,7 +180,8 @@ export default {
       return respond({ ok: Boolean(env.DB), voting: "direct" });
     }
 
-    if (path !== "/api/ratings" && path !== "/api/search-history")
+    if (path !== "/api/ratings" && path !== "/api/search-history"
+      && path !== "/api/reported-links")
       return respond({ error: "Não encontrado." }, 404);
 
     // Não aceitamos envios de origens diferentes da biblioteca.
@@ -157,6 +203,11 @@ export default {
         return request.method === "GET"
           ? await listSearchHistory(env, origin)
           : await saveSearchHistory(request, env, origin);
+      }
+      if (path === "/api/reported-links") {
+        return request.method === "GET"
+          ? await listReportedLinks(env, origin)
+          : await markReportedLink(request, env, origin);
       }
       return request.method === "GET"
         ? await listRatings(env, origin)

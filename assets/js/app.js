@@ -2,6 +2,7 @@ import { loadCatalog, normalize, getCatalogCount } from "./catalog.js?v=discover
 import { createIndex, prepareItem, searchIndex, suggestions, highlightParts } from "./search.js";
 import { getShelf, isFavorite, toggleFavorite, rememberOpened, itemKey } from "./shelf.js";
 import { recordSearch, initEditor } from "./editor.js";
+import { initCopyrightReport, isArchivePdf } from "./copyright-report.js";
 import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=stars-round-up-v2";
 
 const pageSize = 24;
@@ -26,6 +27,7 @@ let currentQuery = "";
 let interpretation = null;
 const indexPromises = new Map();
 const visibleBooks = new Map();
+const copyrightReport = initCopyrightReport();
 
 function languageFrom(value) {
   return validLanguages.has(value) ? value : "all";
@@ -252,6 +254,16 @@ function renderEntry(item) {
   const rating = ratingElement(item);
   if (rating) entry.append(rating);
   article.append(cover, entry);
+  if (url && isArchivePdf(url)) {
+    const report = document.createElement("button");
+    report.type = "button";
+    report.className = "copyright-trigger";
+    report.dataset.reportKey = itemKey(item);
+    report.title = "denunciar uso indevido";
+    report.setAttribute("aria-label", "denunciar uso indevido: " + item.title);
+    report.textContent = "📢";
+    article.append(report);
+  }
   return article;
 }
 
@@ -383,6 +395,12 @@ radios.forEach((radio) => {
 });
 
 results.addEventListener("click", (event) => {
+  const reportButton = event.target.closest("button[data-report-key]");
+  if (reportButton) {
+    const item = visibleBooks.get(reportButton.dataset.reportKey);
+    if (item) copyrightReport.open(item);
+    return;
+  }
   const favoriteButton = event.target.closest("button[data-favorite-key]");
   if (favoriteButton) {
     const item = visibleBooks.get(favoriteButton.dataset.favoriteKey);
@@ -415,6 +433,17 @@ results.addEventListener("click", (event) => {
   search("", category, language);
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
+
+// No toque, a primeira interação com uma área livre do resultado revela o ícone;
+ // links, estrelas e favoritos continuam respondendo ao toque normalmente.
+results.addEventListener("touchstart", (event) => {
+  if (event.target.closest("a, button, input, label")) return;
+  const card = event.target.closest(".result");
+  results.querySelectorAll(".result--report-visible").forEach((node) => {
+    if (node !== card) node.classList.remove("result--report-visible");
+  });
+  if (card) card.classList.add("result--report-visible");
+}, { passive:true });
 
 const observer = new IntersectionObserver((entries) => {
   if (!entries.some((entry) => entry.isIntersecting) || visible >= matches.length) return;

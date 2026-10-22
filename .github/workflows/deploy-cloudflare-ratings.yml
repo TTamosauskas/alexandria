@@ -4,12 +4,13 @@ name: Publicar API de avaliações na Cloudflare
 on:
   push:
     branches:
-      - feature/editor-search-history
+      - feature/copyright-report-flow
     paths:
       - .github/workflows/deploy-cloudflare-ratings.yml
       - cloudflare/src/index.js
       - cloudflare/test/worker.test.mjs
       - cloudflare/test/search-history.test.mjs
+      - cloudflare/test/reported-links.test.mjs
       - cloudflare/migrations/**
   workflow_dispatch:
 
@@ -22,7 +23,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/feature/editor-search-history'
+    if: github.ref == 'refs/heads/feature/copyright-report-flow'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:

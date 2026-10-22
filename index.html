@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="assets/css/main.css?v=editor-500-v1" />
-    <script type="module" src="assets/js/app.js?v=editor-500-v1"></script>
+    <link rel="stylesheet" href="assets/css/main.css?v=copyright-v1" />
+    <script type="module" src="assets/js/app.js?v=copyright-v1"></script>
   </head>
   <body>
     <main class="library" id="library">
@@ -47,6 +47,48 @@
       <button type="button" class="editor-refresh" id="editor-refresh">Atualizar lista</button>
       <p id="editor-status" role="status" aria-live="polite">Carregando histórico…</p>
       <ol id="editor-list" class="editor-list"></ol>
+      <section class="editor-reported" aria-labelledby="editor-reports-heading">
+        <h2 id="editor-reports-heading">Links sinalizados por visitantes</h2>
+        <p>Lista não verificada: a sinalização não comprova violação de direitos autorais nem remoção.</p>
+        <p id="editor-reports-status" role="status" aria-live="polite"></p>
+        <ul id="editor-reports-list" class="editor-list"></ul>
+      </section>
+    </main>
+    <main class="copyright-panel library" id="copyright-panel" hidden>
+      <button type="button" id="copyright-back" class="copyright-back">← Voltar aos resultados</button>
+      <h1>Denunciar uso indevido</h1>
+      <p class="copyright-help">Este formulário prepara uma notificação de direitos autorais ao Internet Archive. Só o titular dos direitos ou seu representante autorizado deve declarar infração. Enviar o e-mail não é automático.</p>
+      <p id="copyright-book" class="copyright-book"></p>
+      <form id="copyright-form" class="copyright-form">
+        <label>Nome completo do reclamante <input name="fullName" type="text" maxlength="160" required autocomplete="name" /></label>
+        <label>Você é
+          <select name="role" required>
+            <option value="owner">Titular dos direitos autorais</option>
+            <option value="agent">Representante autorizado</option>
+          </select>
+        </label>
+        <label>Nome do titular dos direitos <input name="rightsOwner" type="text" maxlength="180" required /></label>
+        <label>Obra protegida (título e identificação) <textarea name="copyrightedWork" maxlength="1200" rows="3" required></textarea></label>
+        <label>Explique a infração alegada e como identificar o uso não autorizado <textarea name="explanation" maxlength="3000" rows="4" required></textarea></label>
+        <label>Endereço postal para contato <textarea name="address" maxlength="500" rows="2" required autocomplete="street-address"></textarea></label>
+        <label>Telefone de contato <input type="tel" name="phone" maxlength="80" required autocomplete="tel" /></label>
+        <label>E-mail de contato <input type="email" name="email" maxlength="220" required autocomplete="email" /></label>
+        <label>Assinatura eletrônica (seu nome completo) <input type="text" name="signature" maxlength="160" required /></label>
+        <label class="copyright-confirm"><input type="checkbox" name="goodFaith" required /> Confirmo, de boa-fé, que o uso indicado não é autorizado pelo titular, seu representante ou pela lei.</label>
+        <label class="copyright-confirm"><input type="checkbox" name="penalty" required /> Declaro, sob pena de perjúrio, que as informações são exatas e que sou titular ou representante autorizado.</label>
+        <button type="submit" class="copyright-generate">Gerar mensagem completa</button>
+      </form>
+      <section id="copyright-generated" class="copyright-generated" hidden>
+        <h2>Mensagem pronta para copiar</h2>
+        <p>Revise o texto antes de enviar para <a href="mailto:info@archive.org">info@archive.org</a>. O site não envia mensagens por você.</p>
+        <textarea id="copyright-message" rows="17" readonly aria-label="Mensagem de denúncia pronta para copiar"></textarea>
+        <button type="button" id="copyright-copy">Copiar mensagem</button>
+        <label class="copyright-confirm copyright-sent"><input type="checkbox" id="copyright-sent"/> Declaro que já enviei a mensagem por e-mail para info@archive.org.</label>
+        <button type="button" id="copyright-mark" disabled>Já enviei o e-mail: registrar link sinalizado</button>
+        <p>O registro contém apenas o título e o link do PDF. Não armazena seus dados de contato nem o conteúdo da denúncia.</p>
+      </section>
+      <p id="copyright-status" role="status" aria-live="polite"></p>
+      <p class="copyright-help">Referência: <a href="https://archive.org/post/1026511/email-address-to-send-removal-request" target="_blank" rel="noopener noreferrer">Orientações de remoção do Archive.org</a>.</p>
     </main>
   </body>
 </html>
