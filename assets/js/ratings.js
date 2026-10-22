@@ -62,8 +62,9 @@ export function ratingElement(item) {
   const rating = ratingCache.get(item.ratingId);
   const group = document.createElement("div");
   group.className = "rating-row";
+  const displayedStars = rating ? Math.ceil(rating.average) : 0;
   group.setAttribute("aria-label", rating
-    ? "Média de " + rating.average.toFixed(1) + " em cinco estrelas"
+    ? "Nota arredondada para cima: " + displayedStars + " de 5 estrelas"
     : "Documento ainda não avaliado");
 
   const stars = document.createElement("span");
@@ -77,22 +78,15 @@ export function ratingElement(item) {
     button.setAttribute("aria-label", "Dar " + score +
       (score === 1 ? " estrela" : " estrelas") + " para " + item.title);
     button.title = "Dar " + score + (score === 1 ? " estrela" : " estrelas");
-    button.textContent = score <= Math.round(rating?.average || 0) ? "★" : "☆";
+    button.textContent = score <= displayedStars ? "★" : "☆";
     stars.append(button);
   }
 
-  const summary = document.createElement("span");
-  summary.className = "rating-summary";
-  summary.textContent = rating
-    ? rating.average.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-      + "/5 · " + rating.count + (rating.count === 1 ? " voto" : " votos")
-    : "Sem avaliações";
-
   const message = document.createElement("span");
-  message.className = "rating-inline-message";
+  message.className = "rating-inline-message sr-only";
   message.setAttribute("role", "status");
   message.setAttribute("aria-live", "polite");
-  group.append(stars, summary, message);
+  group.append(stars, message);
   return group;
 }
 

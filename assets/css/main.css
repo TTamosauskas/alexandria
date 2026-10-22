@@ -62,6 +62,4 @@ button:hover, button:focus-visible { background: #87040d; }
 .rating-stars { display: inline-flex; gap: 3px; }
 .rating-star { background: transparent; border: 0; padding: 0 1px; color: #9c6b0a; font: inherit; font-size: 1.55rem; line-height: 1; cursor: pointer; }
 .rating-star:hover, .rating-star:focus-visible { background: transparent; color: #6c4700; outline-offset: 3px; }
-.rating-summary { font-size: .99rem; }
 .rating-star:disabled { opacity: .5; cursor: progress; }
-.rating-inline-message { color: var(--ink); font-size: .94rem; }

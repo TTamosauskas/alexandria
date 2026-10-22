@@ -96,3 +96,53 @@ test("clique direto envia voto sem token e atualiza a média", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("exibe apenas estrelas e arredonda a média sempre para cima", async () => {
+  const originalDocument = globalThis.document;
+  const originalFetch = globalThis.fetch;
+  try {
+    const nodes = [];
+    globalThis.document = {
+      createElement(tag) {
+        const node = {
+          tag, children: [], dataset: {}, attributes: {},
+          setAttribute(key, value) { this.attributes[key] = value; },
+          append(...elements) { this.children.push(...elements); },
+        };
+        nodes.push(node);
+        return node;
+      },
+    };
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({
+        ratings: [
+          { bookId: "rated", average: 2.01, count: 100 },
+          { bookId: "integer", average: 4, count: 2 },
+        ],
+      }),
+    });
+
+    const module = await import("data:text/javascript," + encodeURIComponent(isolated) + "#stars-only");
+    await module.loadRatings();
+    const books = [
+      { ratingId: "rated", title: "Com nota fracionária" },
+      { ratingId: "integer", title: "Com nota inteira" },
+      { ratingId: "empty", title: "Sem avaliações" },
+    ];
+    for (const [index, expected] of [3, 4, 0].entries()) {
+      const row = module.ratingElement(books[index]);
+      assert.equal(row.tag, "div");
+      const stars = row.children.find((child) => child.className === "rating-stars");
+      const values = stars.children.map((child) => child.textContent).join("");
+      assert.equal(values, "★".repeat(expected) + "☆".repeat(5 - expected));
+      assert.equal(row.children.filter((child) => child.className === "rating-summary").length, 0);
+      assert.equal(row.children.filter((child) => child.textContent?.includes("voto")).length, 0);
+      assert.equal(row.children.length, 2, "somente estrelas e mensagem acessível invisível");
+      assert.equal(row.children[1].className, "rating-inline-message sr-only");
+    }
+  } finally {
+    globalThis.document = originalDocument;
+    globalThis.fetch = originalFetch;
+  }
+});

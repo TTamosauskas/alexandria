@@ -1,5 +1,5 @@
 import { loadCatalog, normalize } from "./catalog.js";
-import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=direct-star-v1";
+import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=stars-round-up-v2";
 
 const pageSize = 24;
 const form = document.querySelector("#search-form");
