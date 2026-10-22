@@ -6,10 +6,12 @@ on:
       - main
       - feature/cloudflare-ratings
       - feature/direct-star-voting
+      - feature/editor-search-history
     paths:
       - 'assets/js/ratings.js'
       - '.github/workflows/ratings-api-smoke.yml'
       - 'cloudflare/test/live-api.mjs'
+      - 'cloudflare/src/index.js'
   workflow_dispatch:
 
 permissions:

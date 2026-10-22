@@ -83,6 +83,48 @@ async function saveRating(request, env, origin) {
   return respond({ rating: record }, 200, origin);
 }
 
+
+// O histórico de pesquisas é público, anônimo e limitado a 500 entradas no D1.
+// A exclusão automática ocorre dentro de um trigger SQLite após cada inserção.
+const HISTORY_LANGUAGES = new Set(["pt", "en", "es", "all"]);
+async function listSearchHistory(env, origin) {
+  const rows = await env.DB.prepare(
+    "SELECT id, query, category, language, created_at AS createdAt " +
+    "FROM search_history ORDER BY id DESC LIMIT 500"
+  ).all();
+  return respond({ searches: rows.results || [] }, 200, origin);
+}
+
+async function saveSearchHistory(request, env, origin) {
+  if (!request.headers.get("Content-Type")?.startsWith("application/json")) {
+    return respond({ error: "É necessário enviar JSON." }, 415, origin);
+  }
+  let payload;
+  try {
+    const body = await request.text();
+    if (body.length > 1024) return respond({ error: "Pesquisa muito longa." }, 413, origin);
+    payload = JSON.parse(body);
+  } catch {
+    return respond({ error: "JSON inválido." }, 400, origin);
+  }
+
+  if (!payload || typeof payload.query !== "string" || typeof payload.category !== "string"
+      || typeof payload.language !== "string") {
+    return respond({ error: "Dados de pesquisa inválidos." }, 400, origin);
+  }
+  const query = payload.query.trim();
+  const category = payload.category.trim();
+  if ((!query && !category) || query.length > 160 || category.length > 160
+      || !HISTORY_LANGUAGES.has(payload.language)
+      || /[\u0000-\u0008\u000e-\u001f\u007f]/.test(query + category)) {
+    return respond({ error: "Pesquisa inválida." }, 400, origin);
+  }
+  await env.DB.prepare(
+    "INSERT INTO search_history (query, category, language) VALUES (?, ?, ?)"
+  ).bind(query, category, payload.language).run();
+  return respond({ recorded: true }, 201, origin);
+}
+
 export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
@@ -93,7 +135,8 @@ export default {
       return respond({ ok: Boolean(env.DB), voting: "direct" });
     }
 
-    if (path !== "/api/ratings") return respond({ error: "Não encontrado." }, 404);
+    if (path !== "/api/ratings" && path !== "/api/search-history")
+      return respond({ error: "Não encontrado." }, 404);
 
     // Não aceitamos envios de origens diferentes da biblioteca.
     if (originHeader && !origin) return respond({ error: "Origem não permitida." }, 403);
@@ -110,6 +153,11 @@ export default {
     if (!isConfigured(env)) return respond({ error: "Serviço não configurado." }, 503, origin);
 
     try {
+      if (path === "/api/search-history") {
+        return request.method === "GET"
+          ? await listSearchHistory(env, origin)
+          : await saveSearchHistory(request, env, origin);
+      }
       return request.method === "GET"
         ? await listRatings(env, origin)
         : await saveRating(request, env, origin);

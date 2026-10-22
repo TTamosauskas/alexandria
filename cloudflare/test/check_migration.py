@@ -42,3 +42,21 @@ cast(first, 3)
 assert db.execute("SELECT score_sum, vote_count FROM book_ratings").fetchone() == (4, 2)
 assert db.execute("SELECT COUNT(*) FROM rating_votes").fetchone()[0] == 2
 print("Migração e atualização de médias: OK")
+
+# Histórico estritamente limitado a 500 pesquisas, com exclusão na inserção.
+history_schema = (root / "migrations" / "0002_search_history.sql").read_text(encoding="utf-8")
+db.executescript(history_schema)
+for position in range(525):
+    db.execute("INSERT INTO search_history (query, category, language) VALUES (?, ?, ?)",
+               (f"busca {position}", "", "pt"))
+db.commit()
+assert db.execute("SELECT COUNT(*) FROM search_history").fetchone()[0] == 500
+oldest, newest = db.execute("SELECT MIN(id), MAX(id) FROM search_history").fetchone()
+assert newest - oldest == 499
+assert db.execute("SELECT query FROM search_history ORDER BY id DESC LIMIT 1").fetchone()[0] == "busca 524"
+try:
+    db.execute("INSERT INTO search_history (query, category, language) VALUES ('', '', 'pt')")
+    assert False, "Pesquisa vazia não deve ser registrada"
+except sqlite3.IntegrityError:
+    pass
+print("Histórico limitado às últimas 500 pesquisas: OK")
