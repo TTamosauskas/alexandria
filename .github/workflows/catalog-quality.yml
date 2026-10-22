@@ -1,6 +1,13 @@
 name: Qualidade do catálogo
 
 on:
+  pull_request:
+    paths:
+      - 'assets/js/**'
+      - 'assets/css/main.css'
+      - 'index.html'
+      - 'tests/**'
+      - '.github/workflows/catalog-quality.yml'
   workflow_dispatch:
   schedule:
     - cron: '0 8 * * 1'

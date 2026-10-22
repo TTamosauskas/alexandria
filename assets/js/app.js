@@ -139,7 +139,7 @@ function scheduleSuggestions() {
   const token = ++suggestionsSequence;
   clearTimeout(suggestionsTimer);
   const text = field.value.trim();
-  if (text.length < 2 || currentView !== "search") {
+  if (text.length < 2) {
     suggestionList.replaceChildren();
     suggestionList.hidden = true;
     field.setAttribute("aria-expanded", "false");
@@ -166,6 +166,13 @@ function safeArchiveUrl(value) {
 
 function archiveCover(identifier) {
   return "https://archive.org/services/img/" + encodeURIComponent(identifier);
+}
+
+function setFavoriteAppearance(button, item, saved) {
+  button.setAttribute("aria-pressed", String(saved));
+  const action = saved ? "Remover dos favoritos: " : "Adicionar aos favoritos: ";
+  button.setAttribute("aria-label", action + item.title);
+  button.title = action + item.title;
 }
 
 function renderEntry(item) {
@@ -204,16 +211,27 @@ function renderEntry(item) {
   } else {
     title.textContent = item.title;
   }
-  entry.append(title);
+  const heading = document.createElement("div");
+  heading.className = "entry-heading";
+  heading.append(title);
 
   const favorite = document.createElement("button");
   favorite.type = "button";
   favorite.className = "favorite-toggle";
   favorite.dataset.favoriteKey = itemKey(item);
-  favorite.setAttribute("aria-pressed", String(isFavorite(item)));
-  favorite.setAttribute("aria-label", (isFavorite(item) ? "Remover dos favoritos: " : "Guardar nos favoritos: ") + item.title);
-  favorite.textContent = isFavorite(item) ? "♥ Salvo" : "♡ Guardar";
-  entry.append(favorite);
+  setFavoriteAppearance(favorite, item, isFavorite(item));
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("width", "22");
+  icon.setAttribute("height", "22");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("focusable", "false");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z");
+  icon.append(path);
+  favorite.append(icon);
+  heading.append(favorite);
+  entry.append(heading);
 
   if ((item.categories || []).length) {
     const tags = document.createElement("ul");
@@ -258,7 +276,7 @@ function showMatches(language) {
       (interpretation ? " · " + interpretation : "");
     appendNextPage();
   } else if (currentView === "favorites") {
-    status.textContent = "Sua estante está vazia. Use “♡ Guardar” para adicionar livros.";
+    status.textContent = "Sua estante está vazia. Use o marcador ao lado do título para adicionar livros.";
   } else if (currentView === "recent") {
     status.textContent = "Nenhuma leitura recente neste navegador.";
   } else if (language === "es" && !currentQuery) {
@@ -372,10 +390,7 @@ results.addEventListener("click", (event) => {
     if (currentView === "favorites") {
       displayShelf("favorites");
     } else {
-      favoriteButton.setAttribute("aria-pressed", String(saved));
-      favoriteButton.textContent = saved ? "♥ Salvo" : "♡ Guardar";
-      favoriteButton.setAttribute("aria-label",
-        (saved ? "Remover dos favoritos: " : "Guardar nos favoritos: ") + item.title);
+      setFavoriteAppearance(favoriteButton, item, saved);
     }
     return;
   }
@@ -414,8 +429,7 @@ shelfTabs.forEach((button) => button.addEventListener("click", () => {
   const view = button.dataset.shelfView;
   if (view === currentView) return;
   setUrl("", "", selectedLanguage(), view);
-  if (view === "search") search("", "", selectedLanguage(), false);
-  else displayShelf(view);
+  displayShelf(view);
 }));
 
 field.addEventListener("input", scheduleSuggestions);
