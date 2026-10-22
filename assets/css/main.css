@@ -65,7 +65,6 @@ button:hover, button:focus-visible { background: #87040d; }
 .rating-star:disabled { opacity: .5; cursor: progress; }
 
 /* Exploração e estante pessoal */
-.catalog-total { margin: -18px 0 22px; text-align: center; font-size: .93rem; color: #555; }
 .library-tabs { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin: 0 auto 25px; }
 .library-tabs button { background:#fff; color:var(--red); border:1px solid var(--line); padding:9px 16px; font-size:1.04rem; }
 .library-tabs button:hover, .library-tabs button:focus-visible { background:#f8f0f0; }
