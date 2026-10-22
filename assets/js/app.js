@@ -1,4 +1,4 @@
-import { loadCatalog, normalize, getCatalogCount } from "./catalog.js";
+import { loadCatalog, normalize, getCatalogCount } from "./catalog.js?v=discovery-v1";
 import { createIndex, prepareItem, searchIndex, suggestions, highlightParts } from "./search.js";
 import { getShelf, isFavorite, toggleFavorite, rememberOpened, itemKey } from "./shelf.js";
 import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=stars-round-up-v2";

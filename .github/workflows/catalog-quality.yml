@@ -24,6 +24,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Conferir sintaxe dos scripts do navegador
+        run: |
+          node --check assets/js/app.js
+          node --check assets/js/catalog.js
+          node --check assets/js/search.js
+          node --check assets/js/shelf.js
+          node --check assets/js/ratings.js
       - name: Testes de busca e estante
         run: node --test tests/*.test.mjs
       - name: Conferir integridade dos manifestos e PDFs duplicados

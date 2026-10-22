@@ -1,5 +1,5 @@
 // Busca desacoplada da interface: sugestões e correção de digitação.
-import { normalize } from "./catalog.js";
+import { normalize } from "./catalog.js?v=discovery-v1";
 
 const equivalents = [
   ["cabala", "kabbalah", "qabalah", "qabbalah", "kabala"],
