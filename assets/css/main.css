@@ -96,7 +96,6 @@ mark { background:#faeab4; color:inherit; }
 
 /* Histórico público das últimas buscas, visível somente em #editor. */
 [hidden] { display: none !important; }
-.search-privacy { max-width:800px; margin:8px auto 0; color:#595959; font-size:.79rem; line-height:1.3; }
 .editor-panel { padding-top:50px; }
 .editor-panel h1 { margin:25px 0 18px; font-size:clamp(2.3rem,6vw,3.8rem); }
 .editor-return { color:var(--red); font-size:1.04rem; }
@@ -148,3 +147,5 @@ mark { background:#faeab4; color:inherit; }
 #copyright-mark { display:block; }
 #copyright-mark:disabled { opacity:.5; cursor:not-allowed; }
 #copyright-status { max-width:750px; margin:18px auto; color:#333; text-align:center; }
+
+.copyright-intro { max-width:750px; margin:14px auto 16px; text-align:center; font-size:1.14rem; line-height:1.45; }
