@@ -4,11 +4,13 @@ name: Publicar API de avaliações na Cloudflare
 on:
   push:
     branches:
-      - feature/direct-star-voting
+      - feature/editor-search-history
     paths:
       - .github/workflows/deploy-cloudflare-ratings.yml
       - cloudflare/src/index.js
       - cloudflare/test/worker.test.mjs
+      - cloudflare/test/search-history.test.mjs
+      - cloudflare/migrations/**
   workflow_dispatch:
 
 permissions:
@@ -20,7 +22,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/feature/direct-star-voting'
+    if: github.ref == 'refs/heads/feature/editor-search-history'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:

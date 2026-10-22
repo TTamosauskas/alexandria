@@ -44,3 +44,12 @@ python3 test/check_migration.py
 O workflow `ratings-api-smoke.yml` valida a API pública sem registrar votos fictícios. A primeira avaliação real deve ser feita no navegador com o site público.
 
 [Documentação oficial — implantação GitHub Actions](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
+
+
+## Histórico global das últimas pesquisas
+
+O endereço \`https://ttamosauskas.github.io/alexandria/#editor\` exibe as **últimas 500 pesquisas explícitas** feitas na biblioteca. Os links recuperam exatamente os termos, categorias e idioma usados. Pesquisas executadas pelo formulário, pelas sugestões ou pelo clique em categoria são registradas; a navegação pelo histórico do navegador e atualizações da página não criam entradas duplicadas.
+
+O frontend envia apenas \`query\`, \`category\` e \`language\`. A API armazena também ID incremental e data/hora. **Não** registra IP, login, identificador de visitante ou cookies para o histórico. O \`GET /api/search-history\` devolve a lista em ordem decrescente de registro e \`POST /api/search-history\` grava uma pesquisa válida. A migração \`0002_search_history.sql\` utiliza trigger D1/SQLite para eliminar automaticamente todas as entradas além das 500 mais recentes, sem alterar os votos.
+
+**Aviso de privacidade:** \`#editor\` é um endereço público, não protegido por senha. Pessoas que descobrirem o endereço poderão ler as pesquisas, que podem conter dados digitados pelos visitantes. O site informa antes da busca que as consultas podem aparecer nesse histórico público. Para uma página restrita seria necessária autenticação independente, nunca apenas um hash de URL.

@@ -65,3 +65,24 @@ console.log("OK POST — dados inválidos rejeitados");
 
 // Sem gravar votos de teste em livros fictícios: um voto válido é testado no módulo local.
 console.log("API direta publicada; POST válido coberto nos testes unitários.");
+
+
+const searches = await request("/api/search-history", { headers: { Origin: origin } });
+assert.equal(searches.status, 200, "GET /api/search-history deve responder 200");
+assert.equal(searches.headers.get("cache-control"), "no-store");
+assert.equal(searches.headers.get("access-control-allow-origin"), origin);
+const searchData = await searches.json();
+assert.ok(Array.isArray(searchData.searches), "Resposta deve incluir searches");
+assert.ok(searchData.searches.length <= 500, "Histórico nunca pode superar 500");
+assert.ok(searchData.searches.every((item) => typeof item.query === "string"
+  && typeof item.category === "string" && ["pt", "en", "es", "all"].includes(item.language)));
+console.log("OK /api/search-history —", searchData.searches.length, "pesquisas guardadas");
+
+// Não registra dados falsos no banco de produção.
+const emptySearch = await request("/api/search-history", {
+  method: "POST",
+  headers: { Origin: origin, "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "", category: "", language: "pt" }),
+});
+assert.equal(emptySearch.status, 400, "Consulta vazia deve ser recusada");
+console.log("OK POST /api/search-history — entrada vazia rejeitada");

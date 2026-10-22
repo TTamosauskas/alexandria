@@ -1,6 +1,7 @@
 import { loadCatalog, normalize, getCatalogCount } from "./catalog.js?v=discovery-v1";
 import { createIndex, prepareItem, searchIndex, suggestions, highlightParts } from "./search.js";
 import { getShelf, isFavorite, toggleFavorite, rememberOpened, itemKey } from "./shelf.js";
+import { recordSearch, initEditor } from "./editor.js";
 import { ratingsEnabled, assignRatingIds, loadRatings, compareByRating, ratingElement, initializeRatings } from "./ratings.js?v=stars-round-up-v2";
 
 const pageSize = 24;
@@ -359,6 +360,7 @@ form.addEventListener("submit", (event) => {
   event.preventDefault();
   clearSuggestions();
   const language = selectedLanguage();
+  void recordSearch(field.value, "", language);
   setUrl(field.value, "", language);
   search(field.value, "", language);
 });
@@ -408,6 +410,7 @@ results.addEventListener("click", (event) => {
   event.preventDefault();
   const category = link.dataset.category;
   const language = selectedLanguage();
+  void recordSearch("", category, language);
   setUrl("", category, language);
   search("", category, language);
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -448,6 +451,7 @@ suggestionList.addEventListener("click", (event) => {
   if (!option) return;
   field.value = option.dataset.suggestedTitle;
   const language = selectedLanguage();
+  void recordSearch(field.value, "", language);
   setUrl(field.value, "", language);
   search(field.value, "", language);
 });
@@ -475,6 +479,10 @@ initializeRatings(results, (ratedBookId) => {
 });
 
 updateTabs();
-const initial = queryState();
-if (initial.view === "search") search(initial.query, initial.category, initial.language, initial.browse);
-else displayShelf(initial.view);
+function returnFromEditor() {
+  const state = queryState();
+  if (state.view === "search") search(state.query, state.category, state.language, state.browse);
+  else displayShelf(state.view);
+}
+initEditor(returnFromEditor);
+if (location.hash !== "#editor") returnFromEditor();
