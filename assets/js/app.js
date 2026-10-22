@@ -281,6 +281,7 @@ async function displayShelf(view) {
   currentView = view;
   currentQuery = "";
   interpretation = null;
+  field.value = "";
   updateTabs();
   status.textContent = "Carregando sua estante…";
   const saved = getShelf(view).map(prepareItem);
