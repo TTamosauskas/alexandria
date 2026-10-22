@@ -35,11 +35,56 @@ export function initEditor(onExit) {
   const list = document.querySelector("#editor-list");
   const status = document.querySelector("#editor-status");
   const refreshButton = document.querySelector("#editor-refresh");
+  const reportsList = document.querySelector("#editor-reports-list");
+  const reportsStatus = document.querySelector("#editor-reports-status");
   let inEditor = false;
   let sequence = 0;
 
+  async function refreshReported(ticket) {
+    reportsList.replaceChildren();
+    reportsStatus.textContent = "Carregando links sinalizados…";
+    try {
+      const response = await fetch(apiBase + "/api/reported-links", {mode:"cors",cache:"no-store"});
+      if (!response.ok) throw new Error("Não foi possível consultar os links sinalizados.");
+      const data = await response.json();
+      if (!Array.isArray(data.reports)) throw new Error("Lista de sinalizações inválida.");
+      if (ticket !== sequence || !inEditor) return;
+      const fragment = document.createDocumentFragment();
+      for (const record of data.reports) {
+        const href = String(record.pdfUrl || "");
+        let parsed;
+        try { parsed = new URL(href); } catch { continue; }
+        if (parsed.protocol !== "https:" || parsed.hostname !== "archive.org"
+          || !parsed.pathname.startsWith("/download/")) continue;
+        const item = document.createElement("li");
+        item.className = "editor-entry";
+        const link = document.createElement("a");
+        link.href = parsed.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = record.title || "PDF sinalizado";
+        const detail = document.createElement("span");
+        detail.className = "editor-entry-meta";
+        const timestamp = Number(record.reportedAt);
+        detail.textContent = "Sinalizado em " + (timestamp > 0
+          ? new Date(timestamp * 1000).toLocaleString("pt-BR") : "data indisponível") +
+          " · Não verificado";
+        item.append(link, detail);
+        fragment.append(item);
+      }
+      reportsList.append(fragment);
+      reportsStatus.textContent = reportsList.children.length
+        ? reportsList.children.length + " links sinalizados (não verificados)."
+        : "Nenhum link sinalizado até o momento.";
+    } catch(error) {
+      if (ticket === sequence && inEditor)
+        reportsStatus.textContent = error.message || "Não foi possível carregar as sinalizações.";
+    }
+  }
+
   async function refresh() {
     const ticket = ++sequence;
+    void refreshReported(ticket);
     status.textContent = "Carregando as últimas pesquisas…";
     list.replaceChildren();
     refreshButton.disabled = true;

@@ -109,3 +109,42 @@ mark { background:#faeab4; color:inherit; }
 .editor-entry a { color:var(--red); font-size:1.21rem; }
 .editor-entry-meta { color:#666; font-size:.85rem; display:block; margin-top:4px; }
 @media(max-width:620px) { .editor-panel { padding-top:25px; } .editor-list { padding-left:23px; } }
+
+
+/* Denúncias: oculta até hover, foco ou revelação explícita pelo toque */
+.result { position:relative; padding-bottom:44px; }
+.copyright-trigger { position:absolute; right:0; bottom:5px; width:42px; height:42px;
+  display:flex; align-items:center; justify-content:center; padding:0; border-radius:5px;
+  background:transparent; font-size:1.48rem; line-height:1; opacity:0; visibility:hidden;
+  pointer-events:none; transition:opacity .12s ease; }
+.result:hover .copyright-trigger,
+.result:focus-within .copyright-trigger,
+.result--report-visible .copyright-trigger,
+.copyright-trigger:focus-visible { opacity:1; visibility:visible; pointer-events:auto; }
+.copyright-trigger:hover, .copyright-trigger:focus-visible { background:#f2eaea; }
+.copyright-trigger:focus-visible { outline:2px solid var(--red); outline-offset:2px; }
+.editor-reported { margin-top:45px; padding-top:18px; border-top:2px solid var(--line); }
+.editor-reported h2 { text-align:center; font-size:1.8rem; font-weight:400; }
+.editor-reported > p { text-align:center; color:#555; }
+.copyright-panel { padding-top:35px; }
+.copyright-panel h1 { margin:22px 0; font-size:clamp(2.2rem,6vw,3.5rem); }
+.copyright-help, .copyright-book { max-width:750px; margin:12px auto 20px; text-align:center; color:#484848; overflow-wrap:anywhere; }
+.copyright-form { display:grid; gap:15px; max-width:750px; margin:25px auto; }
+.copyright-form > label { display:flex; flex-direction:column; gap:7px; font-size:1.09rem; }
+.copyright-form input:not([type="checkbox"]), .copyright-form select,
+.copyright-form textarea, #copyright-message { border:1px solid #666; width:100%;
+  padding:10px; font:inherit; color:var(--ink); background:#fff; border-radius:3px; }
+.copyright-form .copyright-confirm, .copyright-confirm { display:flex; flex-direction:row;
+  align-items:flex-start; gap:9px; line-height:1.35; }
+.copyright-confirm input { accent-color:var(--red); margin-top:5px; flex-shrink:0; }
+.copyright-form button, #copyright-generated button { min-height:44px; padding:10px 18px; }
+.copyright-back { font-size:1rem; padding:8px 12px; background:transparent; color:var(--red); }
+.copyright-back:hover { background:#f8eeee; }
+.copyright-generated { max-width:750px; margin:25px auto; }
+.copyright-generated h2 { font-weight:400; }
+.copyright-generated textarea { resize:vertical; min-height:240px; display:block; margin:12px 0; }
+.copyright-generated p { color:#555; }
+.copyright-sent { margin:22px 0 12px; }
+#copyright-mark { display:block; }
+#copyright-mark:disabled { opacity:.5; cursor:not-allowed; }
+#copyright-status { max-width:750px; margin:18px auto; color:#333; text-align:center; }
