@@ -59,3 +59,12 @@ test("texto introdutório da denúncia precede o formulário e aviso sob a busca
  assert.doesNotMatch(html,/As pesquisas realizadas podem aparecer em um histórico público/);
  assert.doesNotMatch(html,/class="search-privacy"/);
 });
+
+test("formulário orienta explicação em inglês e não exibe o parágrafo removido", () => {
+ const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+ assert.doesNotMatch(html, /Este formulário prepara uma notificação de direitos autorais ao Internet Archive/);
+ assert.match(html, /Explique a infração alegada e como identificar o uso não autorizado \(escreva em inglês\)/);
+ assert.match(html, /Escreva esta explicação em inglês\. O texto será incluído na mensagem final sem tradução automática/);
+ assert.match(html, /name="explanation"[^>]*aria-describedby="copyright-english-hint"[^>]*lang="en"/);
+ assert.match(html, /Não é nossa intenção ferir direitos de autores e editoras/);
+});
