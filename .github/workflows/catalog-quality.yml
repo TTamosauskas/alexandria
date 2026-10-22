@@ -1,0 +1,41 @@
+name: Qualidade do catálogo
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 1'
+  push:
+    branches: [main, feature/discovery-shelf-catalog-quality]
+    paths:
+      - 'data/**'
+      - 'scripts/audit-catalog.mjs'
+      - 'tests/**'
+      - '.github/workflows/catalog-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes de busca e estante
+        run: node --test tests/*.test.mjs
+      - name: Conferir integridade dos manifestos e PDFs duplicados
+        run: node scripts/audit-catalog.mjs --output=reports/catalog-quality.json
+      - name: Verificar amostra de links públicos do Archive.org
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: node scripts/audit-catalog.mjs --check-links --sample=24 --output=reports/catalog-quality.json
+      - name: Guardar relatório para inspeção
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-quality-report
+          path: reports/catalog-quality.json
+          if-no-files-found: warn
+          retention-days: 30

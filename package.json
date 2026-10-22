@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs && npm test --prefix cloudflare",
+    "audit": "node scripts/audit-catalog.mjs"
+  }
+}

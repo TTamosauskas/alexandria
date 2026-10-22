@@ -5,6 +5,16 @@ const manifestUrls = {
 };
 
 const pendingCatalogs = new Map();
+let manifestCountPromise;
+
+export function getCatalogCount() {
+  if (!manifestCountPromise) {
+    manifestCountPromise = Promise.all(Object.values(manifestUrls).map(fetchJson))
+      .then((manifests) => manifests.reduce((total, manifest) => total + Number(manifest.records || 0), 0))
+      .catch((error) => { manifestCountPromise = null; throw error; });
+  }
+  return manifestCountPromise;
+}
 
 async function fetchJson(url) {
   const response = await fetch(url);
@@ -18,8 +28,8 @@ function loadLanguage(language, onProgress) {
       const manifestUrl = manifestUrls[language];
       const manifest = await fetchJson(manifestUrl);
       const records = [];
-      for (let index = 0; index < manifest.parts.length; index += 4) {
-        const group = manifest.parts.slice(index, index + 4);
+      for (let index = 0; index < manifest.parts.length; index += 8) {
+        const group = manifest.parts.slice(index, index + 8);
         const chunks = await Promise.all(group.map((part) =>
           fetchJson(new URL(part + "?v=" + manifest.version, manifestUrl))
         ));
