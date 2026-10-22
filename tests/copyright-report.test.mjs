@@ -47,7 +47,7 @@ test("layout inclui botão ocultável, segundo relatório e aviso de que não h�
  assert.match(html,/id="editor-reports-list"/);
  assert.match(html,/id="copyright-form"/);
  assert.match(html,/info@archive\.org/);
- assert.match(html,/não é automático/);
+ assert.match(html,/O site não envia mensagens por você/);
  assert.match(html,/id="copyright-sent"/);
 });
 
