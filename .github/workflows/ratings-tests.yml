@@ -11,6 +11,7 @@ on:
     branches:
       - main
       - feature/cloudflare-ratings
+      - feature/direct-star-voting
     paths:
       - 'cloudflare/**'
       - 'assets/js/app.js'

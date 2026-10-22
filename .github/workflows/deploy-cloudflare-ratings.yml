@@ -1,12 +1,14 @@
 name: Publicar API de avaliações na Cloudflare
 
-# Só roda na branch de testes. A branch main e o GitHub Pages não são alterados.
+# Publica primeiro a API na branch de testes, antes de ativar a interface em main.
 on:
   push:
     branches:
-      - feature/cloudflare-ratings
+      - feature/direct-star-voting
     paths:
       - .github/workflows/deploy-cloudflare-ratings.yml
+      - cloudflare/src/index.js
+      - cloudflare/test/worker.test.mjs
   workflow_dispatch:
 
 permissions:
@@ -18,7 +20,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/feature/cloudflare-ratings'
+    if: github.ref == 'refs/heads/feature/direct-star-voting'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -27,7 +29,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
       CI: "true"
     steps:
       - name: Obter codigo da branch de testes
@@ -37,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TURNSTILE_SECRET; do
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Configure o segredo $name em Settings > Secrets and variables > Actions, antes de reexecutar o workflow."
               exit 1
@@ -62,12 +63,6 @@ jobs:
 
       - name: Publicar Worker
         run: npx wrangler deploy
-
-      - name: Definir segredo Turnstile
-        shell: bash
-        run: |
-          set -euo pipefail
-          printf '%s' "$TURNSTILE_SECRET" | npx wrangler secret put TURNSTILE_SECRET
 
       - name: Criar identificador privado de votos somente se inexistente
         shell: bash
@@ -99,4 +94,4 @@ jobs:
         run: |
           echo "Confira o endereco workers.dev informado no passo Publicar Worker."
           echo "Abra <URL>/api/health e <URL>/api/ratings antes de ativar o frontend."
-          echo "Nao publique a branch main sem validar uma avaliacao real."
+          echo "O site somente sera atualizado apos este deploy e os testes HTTP passarem."

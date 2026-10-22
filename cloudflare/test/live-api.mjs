@@ -22,7 +22,7 @@ async function request(path, options = {}, retries = 3) {
 
 const health = await request("/api/health");
 assert.equal(health.status, 200, "/api/health precisa retornar 200");
-assert.deepEqual(await health.json(), { ok: true }, "D1 precisa estar vinculado");
+assert.deepEqual(await health.json(), { ok: true, voting: "direct" }, "Worker direto e D1 precisam estar ativos");
 console.log("OK /api/health — D1 vinculado");
 
 const ratings = await request("/api/ratings", { headers: { Origin: origin } });
@@ -63,16 +63,5 @@ const invalidRating = await request("/api/ratings", {
 assert.equal(invalidRating.status, 400, "Dados inválidos não podem ser aceitos");
 console.log("OK POST — dados inválidos rejeitados");
 
-const invalidChallenge = await request("/api/ratings", {
-  method: "POST",
-  headers: { Origin: origin, "Content-Type": "application/json" },
-  body: JSON.stringify({
-    bookId: "a".repeat(64),
-    visitorId: crypto.randomUUID(),
-    score: 5,
-    token: "invalid",
-  }),
-});
-assert.equal(invalidChallenge.status, 403, "Turnstile precisa rejeitar token falso");
-console.log("OK POST — Turnstile rejeitou token falso");
-console.log("API pública aprovada nos testes automáticos. O voto real ainda exige o navegador.");
+// Sem gravar votos de teste em livros fictícios: um voto válido é testado no módulo local.
+console.log("API direta publicada; POST válido coberto nos testes unitários.");

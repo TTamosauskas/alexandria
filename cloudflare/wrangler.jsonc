@@ -12,7 +12,6 @@
     }
   ],
   "vars": {
-    "ALLOWED_ORIGIN": "https://ttamosauskas.github.io",
-    "TURNSTILE_HOSTNAME": "ttamosauskas.github.io"
+    "ALLOWED_ORIGIN": "https://ttamosauskas.github.io"
   }
 }

@@ -1,16 +1,12 @@
 import { RATINGS_CONFIG } from "./ratings-config.js";
 
-export const ratingsEnabled = Boolean(RATINGS_CONFIG.enabled === true && RATINGS_CONFIG.apiBaseUrl && RATINGS_CONFIG.turnstileSiteKey);
+export const ratingsEnabled = Boolean(RATINGS_CONFIG.enabled && RATINGS_CONFIG.apiBaseUrl);
 const apiBase = RATINGS_CONFIG.apiBaseUrl.replace(/\/+$/, "");
 const ratingCache = new Map();
 const knownBooks = new Map();
-let catalogRatingsPromise;
-let updateCallback = () => {};
-let dialog;
-let chosenBook;
-let chosenScore = 0;
-let challengeToken = "";
-let widgetId = null;
+const pendingBooks = new Set();
+let ratingsRequest;
+let onRatingSaved = () => {};
 let fallbackVisitorId;
 
 export async function assignRatingIds(items) {
@@ -18,17 +14,15 @@ export async function assignRatingIds(items) {
   await Promise.all(items.map(async (item) => {
     if (item.ratingId) return;
     const input = new TextEncoder().encode((item.language || "pt") + "\0" + item.pdf_url);
-    const data = await crypto.subtle.digest("SHA-256", input);
-    item.ratingId = [...new Uint8Array(data)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    const bytes = await crypto.subtle.digest("SHA-256", input);
+    item.ratingId = [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
   }));
 }
 
 export async function loadRatings() {
   if (!ratingsEnabled) return;
-  // Compartilha apenas requisicoes simultaneas. Uma nova busca deve consultar
-  // a media atual, inclusive votos feitos em outra aba ou por outro visitante.
-  if (!catalogRatingsPromise) {
-    catalogRatingsPromise = fetch(apiBase + "/api/ratings", { mode: "cors", cache: "no-store" })
+  if (!ratingsRequest) {
+    ratingsRequest = fetch(apiBase + "/api/ratings", { mode: "cors", cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error("Servidor de avaliações indisponível");
         return response.json();
@@ -36,36 +30,30 @@ export async function loadRatings() {
       .then((payload) => {
         if (!Array.isArray(payload.ratings)) throw new Error("Resposta de avaliações inválida");
         ratingCache.clear();
-        for (const rating of payload.ratings) {
-          if (typeof rating.bookId === "string"
-              && Number.isFinite(rating.average) && Number.isInteger(rating.count)
-              && rating.count > 0) {
-            ratingCache.set(rating.bookId, { average: rating.average, count: rating.count });
+        for (const record of payload.ratings) {
+          if (typeof record.bookId === "string"
+            && Number.isFinite(record.average) && Number.isInteger(record.count)
+            && record.count > 0) {
+            ratingCache.set(record.bookId, { average: record.average, count: record.count });
           }
         }
-      })
-      .finally(() => {
-        // O cache fica apenas nos dados. O proximo GET nao reutiliza uma Promise resolvida.
-        catalogRatingsPromise = null;
-      });
+      }).finally(() => { ratingsRequest = null; });
   }
-  return catalogRatingsPromise;
+  return ratingsRequest;
 }
 
-export function compareByRating(a, b) {
-  const left = ratingCache.get(a.ratingId);
-  const right = ratingCache.get(b.ratingId);
-  if (left && right) {
-    const byAverage = right.average - left.average;
-    if (byAverage) return byAverage;
-    const byCount = right.count - left.count;
-    if (byCount) return byCount;
-  } else if (left) {
+export function compareByRating(left, right) {
+  const a = ratingCache.get(left.ratingId);
+  const b = ratingCache.get(right.ratingId);
+  if (a && b) {
+    if (b.average !== a.average) return b.average - a.average;
+    if (b.count !== a.count) return b.count - a.count;
+  } else if (a) {
     return -1;
-  } else if (right) {
+  } else if (b) {
     return 1;
   }
-  return a.title.localeCompare(b.title, "pt-BR");
+  return left.title.localeCompare(right.title, "pt-BR");
 }
 
 export function ratingElement(item) {
@@ -81,14 +69,16 @@ export function ratingElement(item) {
   const stars = document.createElement("span");
   stars.className = "rating-stars";
   for (let score = 1; score <= 5; score++) {
-    const star = document.createElement("button");
-    star.type = "button";
-    star.className = "rating-star";
-    star.dataset.ratingBook = item.ratingId;
-    star.dataset.ratingScore = String(score);
-    star.setAttribute("aria-label", "Avaliar " + item.title + " com " + score + (score === 1 ? " estrela" : " estrelas"));
-    star.textContent = score <= Math.round(rating?.average || 0) ? "★" : "☆";
-    stars.append(star);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "rating-star";
+    button.dataset.ratingBook = item.ratingId;
+    button.dataset.ratingScore = String(score);
+    button.setAttribute("aria-label", "Dar " + score +
+      (score === 1 ? " estrela" : " estrelas") + " para " + item.title);
+    button.title = "Dar " + score + (score === 1 ? " estrela" : " estrelas");
+    button.textContent = score <= Math.round(rating?.average || 0) ? "★" : "☆";
+    stars.append(button);
   }
 
   const summary = document.createElement("span");
@@ -97,167 +87,87 @@ export function ratingElement(item) {
     ? rating.average.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
       + "/5 · " + rating.count + (rating.count === 1 ? " voto" : " votos")
     : "Sem avaliações";
-  group.append(stars, summary);
+
+  const message = document.createElement("span");
+  message.className = "rating-inline-message";
+  message.setAttribute("role", "status");
+  message.setAttribute("aria-live", "polite");
+  group.append(stars, summary, message);
   return group;
 }
 
 function visitorId() {
-  const key = "alexandria-anonymous-voter-v1";
+  const storageKey = "alexandria-anonymous-voter-v1";
   try {
-    let saved = localStorage.getItem(key);
-    if (!saved) {
-      saved = crypto.randomUUID();
-      localStorage.setItem(key, saved);
+    let id = localStorage.getItem(storageKey);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(storageKey, id);
     }
-    return saved;
+    return id;
   } catch {
     fallbackVisitorId ||= crypto.randomUUID();
     return fallbackVisitorId;
   }
 }
 
-function closeDialog() {
-  if (dialog?.open) dialog.close();
-}
-
-async function ensureTurnstile() {
-  if (window.turnstile) return window.turnstile;
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.onload = () => window.turnstile ? resolve(window.turnstile) : reject(new Error("Turnstile não iniciou"));
-    script.onerror = () => reject(new Error("Não foi possível carregar a verificação"));
-    document.head.append(script);
+// Um clique envia diretamente a nota, sem login, modal ou verificacao Turnstile.
+export async function voteRating(item, score) {
+  if (!ratingsEnabled || !item?.ratingId || !Number.isInteger(score) || score < 1 || score > 5) {
+    throw new Error("Avaliação inválida.");
+  }
+  const response = await fetch(apiBase + "/api/ratings", {
+    method: "POST",
+    mode: "cors",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bookId: item.ratingId, visitorId: visitorId(), score }),
   });
-}
-
-function selectScore(score) {
-  chosenScore = score;
-  dialog.querySelectorAll("[data-choose-score]").forEach((button) => {
-    button.textContent = Number(button.dataset.chooseScore) <= score ? "★" : "☆";
-    button.setAttribute("aria-pressed", String(Number(button.dataset.chooseScore) === score));
-  });
-}
-
-async function openDialog(book, score) {
-  chosenBook = book;
-  challengeToken = "";
-  dialog.querySelector(".rating-dialog-title").textContent = "Avaliar: " + book.title;
-  dialog.querySelector(".rating-dialog-feedback").textContent = "";
-  dialog.querySelector(".rating-submit").disabled = true;
-  dialog.querySelector(".rating-challenge").replaceChildren();
-  selectScore(score);
-  dialog.showModal();
-
+  let payload;
   try {
-    const turnstile = await ensureTurnstile();
-    if (!dialog.open || chosenBook !== book) return;
-    widgetId = turnstile.render(dialog.querySelector(".rating-challenge"), {
-      sitekey: RATINGS_CONFIG.turnstileSiteKey,
-      action: "alexandria_rating",
-      callback(token) {
-        challengeToken = token;
-        dialog.querySelector(".rating-submit").disabled = false;
-      },
-      "expired-callback"() {
-        challengeToken = "";
-        dialog.querySelector(".rating-submit").disabled = true;
-      },
-      "error-callback"() {
-        challengeToken = "";
-        dialog.querySelector(".rating-submit").disabled = true;
-      },
-    });
+    payload = await response.json();
   } catch {
-    if (dialog.open) {
-      dialog.querySelector(".rating-dialog-feedback").textContent = "Não foi possível carregar a verificação antiabuso.";
-    }
+    throw new Error("Não foi possível ler a resposta do servidor.");
   }
-}
-
-async function submitRating() {
-  if (!chosenBook || !chosenScore || !challengeToken) return;
-  const book = chosenBook;
-  const button = dialog.querySelector(".rating-submit");
-  button.disabled = true;
-  dialog.querySelector(".rating-dialog-feedback").textContent = "Registrando voto…";
-  try {
-    const response = await fetch(apiBase + "/api/ratings", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        bookId: book.ratingId,
-        visitorId: visitorId(),
-        score: chosenScore,
-        token: challengeToken,
-      }),
-    });
-    const payload = await response.json();
-    if (!response.ok || !payload.rating || payload.rating.bookId !== book.ratingId) {
-      throw new Error(payload.error || "Não foi possível registrar o voto.");
-    }
-    ratingCache.set(book.ratingId, {
-      average: Number(payload.rating.average),
-      count: Number(payload.rating.count),
-    });
-    closeDialog();
-    updateCallback(book.ratingId);
-  } catch (error) {
-    dialog.querySelector(".rating-dialog-feedback").textContent =
-      error.message || "Não foi possível registrar o voto.";
-  } finally {
-    challengeToken = "";
-    if (dialog.open && widgetId !== null && window.turnstile) {
-      window.turnstile.reset(widgetId);
-    }
+  if (!response.ok || !payload.rating || payload.rating.bookId !== item.ratingId) {
+    throw new Error(payload.error || "Não foi possível registrar a avaliação.");
   }
+  const average = Number(payload.rating.average);
+  const count = Number(payload.rating.count);
+  if (!Number.isFinite(average) || !Number.isInteger(count) || count < 1) {
+    throw new Error("Resposta de avaliação inválida.");
+  }
+  ratingCache.set(item.ratingId, { average, count });
+  return { average, count };
 }
 
 export function initializeRatings(root, onUpdated = () => {}) {
   if (!ratingsEnabled) return;
-  updateCallback = onUpdated;
-  dialog = document.createElement("dialog");
-  dialog.className = "rating-dialog";
-  dialog.innerHTML = `
-    <div class="rating-dialog-content">
-      <button type="button" class="rating-close" aria-label="Fechar avaliação">×</button>
-      <h2 class="rating-dialog-title"></h2>
-      <p>Escolha sua nota de 1 a 5 estrelas.</p>
-      <div class="rating-choose" role="group" aria-label="Sua nota">
-        <button type="button" data-choose-score="1" aria-label="1 estrela">☆</button>
-        <button type="button" data-choose-score="2" aria-label="2 estrelas">☆</button>
-        <button type="button" data-choose-score="3" aria-label="3 estrelas">☆</button>
-        <button type="button" data-choose-score="4" aria-label="4 estrelas">☆</button>
-        <button type="button" data-choose-score="5" aria-label="5 estrelas">☆</button>
-      </div>
-      <div class="rating-challenge"></div>
-      <p class="rating-dialog-feedback" aria-live="polite"></p>
-      <button type="button" class="rating-submit" disabled>Enviar avaliação</button>
-      <p class="rating-notice">Voto anônimo vinculado a este navegador. Você pode alterar sua nota.</p>
-    </div>
-  `;
-  document.body.append(dialog);
+  onRatingSaved = onUpdated;
+  root.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-rating-book][data-rating-score]");
+    if (!button || !root.contains(button)) return;
+    const bookId = button.dataset.ratingBook;
+    const item = knownBooks.get(bookId);
+    const score = Number(button.dataset.ratingScore);
+    if (!item || pendingBooks.has(bookId)) return;
+    pendingBooks.add(bookId);
 
-  dialog.querySelector(".rating-close").addEventListener("click", closeDialog);
-  dialog.querySelector(".rating-submit").addEventListener("click", submitRating);
-  dialog.querySelectorAll("[data-choose-score]").forEach((button) => {
-    button.addEventListener("click", () => selectScore(Number(button.dataset.chooseScore)));
-  });
-  dialog.addEventListener("close", () => {
-    challengeToken = "";
-    if (widgetId !== null && window.turnstile) {
-      window.turnstile.remove(widgetId);
+    const row = button.closest(".rating-row");
+    const message = row?.querySelector(".rating-inline-message");
+    row?.querySelectorAll(".rating-star").forEach((star) => { star.disabled = true; });
+    if (message) message.textContent = "Salvando…";
+
+    try {
+      await voteRating(item, score);
+      if (message) message.textContent = "Voto registrado";
+      onRatingSaved(bookId);
+    } catch (error) {
+      if (message) message.textContent = error.message || "Não foi possível votar.";
+    } finally {
+      pendingBooks.delete(bookId);
+      // Em caso de erro, libera a tentativa na mesma linha.
+      row?.querySelectorAll(".rating-star").forEach((star) => { star.disabled = false; });
     }
-    widgetId = null;
-    chosenBook = null;
-  });
-
-  root.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-rating-book]");
-    if (!button) return;
-    const book = knownBooks.get(button.dataset.ratingBook);
-    if (book) openDialog(book, Number(button.dataset.ratingScore));
   });
 }

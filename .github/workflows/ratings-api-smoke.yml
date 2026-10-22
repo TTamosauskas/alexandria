@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/cloudflare-ratings
+      - feature/direct-star-voting
     paths:
       - 'assets/js/ratings.js'
       - '.github/workflows/ratings-api-smoke.yml'
