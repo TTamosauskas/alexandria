@@ -12,7 +12,7 @@ const status = document.querySelector("#status");
 const results = document.querySelector("#results");
 const sentinel = document.querySelector("#results-sentinel");
 const suggestionList = document.querySelector("#search-suggestions");
-const totalCounter = document.querySelector("#catalog-total");
+
 const shelfTabs = Array.from(document.querySelectorAll("[data-shelf-view]"));
 const radios = Array.from(document.querySelectorAll('input[name="idioma"]'));
 const validLanguages = new Set(["pt", "en", "es", "all"]);
@@ -34,7 +34,7 @@ function languageFrom(value) {
 }
 
 function selectedLanguage() {
-  return radios.find((radio) => radio.checked)?.value || "all";
+  return radios.find((radio) => radio.checked)?.value || "pt";
 }
 
 function setSelectedLanguage(language) {
@@ -47,13 +47,13 @@ function queryState() {
   return {
     query: params.get("q") || "",
     category: params.get("categoria") || "",
-    language: languageFrom(params.get("idioma")),
+    language: languageFrom(params.get("idioma") || "pt"),
     browse: params.has("q") || params.has("categoria"),
     view: ["favorites", "recent"].includes(params.get("estante")) ? params.get("estante") : "search",
   };
 }
 
-function setUrl(query, category = "", language = "all", view = "search") {
+function setUrl(query, category = "", language = "pt", view = "search") {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (category) params.set("categoria", category);
@@ -488,9 +488,12 @@ document.addEventListener("click", (event) => {
   if (!form.contains(event.target)) clearSuggestions();
 });
 
+// O placeholder começa com o total publicado e acompanha alterações nos manifestos.
 getCatalogCount().then((total) => {
-  totalCounter.textContent = total.toLocaleString("pt-BR") + " documentos no acervo";
-}).catch(() => { totalCounter.textContent = "Pesquise no acervo"; });
+  if (Number.isFinite(total) && total > 0) {
+    field.placeholder = total.toLocaleString("pt-BR") + " documentos no acervo";
+  }
+}).catch(() => { /* Mantém o total exibido no HTML se os manifestos falharem. */ });
 
 initializeRatings(results, (ratedBookId) => {
   const previouslyVisible = visible;
