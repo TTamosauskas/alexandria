@@ -164,7 +164,7 @@ function safePdfUrl(value) {
     const url = new URL(value);
     if (url.protocol !== "https:") return null;
     if (url.hostname === "archive.org" && url.pathname.startsWith("/download/")) return url.href;
-    if (url.hostname === "drive.google.com" && /^\\/file\\/d\\/[A-Za-z0-9_-]+\\/(view|preview)\\/?$/.test(url.pathname)) return url.href;
+    if (url.hostname === "drive.google.com" && /^\/file\/d\/[A-Za-z0-9_-]+\/(view|preview)\/?$/.test(url.pathname)) return url.href;
     return null;
   } catch { return null; }
 }
