@@ -1,0 +1,35 @@
+[
+  {
+    "identifier": "gdrive-0B0ndBUtTayxbSkRCYVFLY3VGaVk",
+    "title": "Mutus Liber (O Livro Mudo)",
+    "creator": "Altus (atribuído)",
+    "categories": [
+      "Alquimia",
+      "Ocultismo Ocidental e Ordens Iniciáticas"
+    ],
+    "pdf_url": "https://drive.google.com/file/d/0B0ndBUtTayxbSkRCYVFLY3VGaVk/view",
+    "source": "google_drive"
+  },
+  {
+    "identifier": "gdrive-0B0ndBUtTayxbWkQ5Qy1mZXJhaXM",
+    "title": "A Reencarnação",
+    "creator": "Papus",
+    "categories": [
+      "Espiritismo",
+      "Ocultismo Ocidental e Ordens Iniciáticas"
+    ],
+    "pdf_url": "https://drive.google.com/file/d/0B0ndBUtTayxbWkQ5Qy1mZXJhaXM/view",
+    "source": "google_drive"
+  },
+  {
+    "identifier": "gdrive-0B0ndBUtTayxbZVlLaDZIcnQtUFk",
+    "title": "Os Princípios da Geomancia Astrológica",
+    "creator": "Franz Hartmann",
+    "categories": [
+      "Astrologia",
+      "Ocultismo Ocidental e Ordens Iniciáticas"
+    ],
+    "pdf_url": "https://drive.google.com/file/d/0B0ndBUtTayxbZVlLaDZIcnQtUFk/view",
+    "source": "google_drive"
+  }
+]
