@@ -159,11 +159,13 @@ function scheduleSuggestions() {
   }, 250);
 }
 
-function safeArchiveUrl(value) {
+function safePdfUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === "archive.org" && url.pathname.startsWith("/download/")
-      ? url.href : null;
+    if (url.protocol !== "https:") return null;
+    if (url.hostname === "archive.org" && url.pathname.startsWith("/download/")) return url.href;
+    if (url.hostname === "drive.google.com" && /^\\/file\\/d\\/[A-Za-z0-9_-]+\\/(view|preview)\\/?$/.test(url.pathname)) return url.href;
+    return null;
   } catch { return null; }
 }
 
@@ -190,15 +192,20 @@ function renderEntry(item) {
   cover.height = 146;
   cover.loading = "lazy";
   cover.decoding = "async";
-  cover.src = archiveCover(item.identifier);
-  cover.addEventListener("error", () => {
+  const isDrive = item.source === "google_drive";
+  if (isDrive) {
     article.classList.add("result--no-cover");
-    cover.remove();
-  });
+  } else {
+    cover.src = archiveCover(item.identifier);
+    cover.addEventListener("error", () => {
+      article.classList.add("result--no-cover");
+      cover.remove();
+    });
+  }
 
   const entry = document.createElement("div");
   entry.className = "entry";
-  const url = safeArchiveUrl(item.pdf_url);
+  const url = safePdfUrl(item.pdf_url);
   const title = document.createElement(url ? "a" : "span");
   title.className = "title";
   if (url) {
@@ -253,7 +260,14 @@ function renderEntry(item) {
 
   const rating = ratingElement(item);
   if (rating) entry.append(rating);
-  article.append(cover, entry);
+  if (isDrive) {
+    const source = document.createElement("span");
+    source.className = "source-label";
+    source.textContent = "Google Drive";
+    entry.append(source);
+  }
+  if (isDrive) article.append(entry);
+  else article.append(cover, entry);
   if (url && isArchivePdf(url)) {
     const report = document.createElement("button");
     report.type = "button";
