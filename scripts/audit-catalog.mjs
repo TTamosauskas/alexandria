@@ -32,8 +32,13 @@ const linkCandidates = [];
 function validUrl(raw) {
   try {
     const url = new URL(raw);
-    return url.protocol === "https:" && url.hostname === "archive.org" &&
-      url.pathname.startsWith("/download/") && /\.pdf$/i.test(decodeURIComponent(url.pathname));
+    if (url.protocol !== "https:") return false;
+    if (url.hostname === "archive.org") {
+      return url.pathname.startsWith("/download/") &&
+        /\.pdf$/i.test(decodeURIComponent(url.pathname));
+    }
+    return url.hostname === "drive.google.com" &&
+      /^\/file\/d\/[A-Za-z0-9_-]+\/(view|preview)\/?$/.test(url.pathname);
   } catch { return false; }
 }
 function checkStructure(record, location, language) {
@@ -56,7 +61,7 @@ function checkStructure(record, location, language) {
       }
     } else {
       seenUrls.set(key, location);
-      if (validUrl(link)) linkCandidates.push({ location, url: link, language });
+      if (validUrl(link) && link.startsWith("https://archive.org/download/")) linkCandidates.push({ location, url: link, language });
     }
   }
 }
