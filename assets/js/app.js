@@ -1,4 +1,4 @@
-import { loadCatalog, normalize, getCatalogCount } from "./catalog.js?v=discovery-v1";
+import { loadCatalog, normalize, getCatalogCount } from "./catalog.js?v=drive-pilot-v1";
 import { createIndex, prepareItem, searchIndex, suggestions, highlightParts } from "./search.js";
 import { getShelf, isFavorite, toggleFavorite, rememberOpened, itemKey } from "./shelf.js";
 import { recordSearch, initEditor } from "./editor.js";
